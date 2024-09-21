@@ -20,13 +20,18 @@ import com.brianuceda.sserafimflow.utils.SeleniumUtils;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 
+import java.time.LocalDateTime;
+
 @Service
 public class ExchangeRateService implements ExchangeRateServiceImpl {
+  @Value("${IS_PRODUCTION}")
+  private boolean isProduction;
+
   @Value("${SUNAT_TOKEN}")
   private String sunatToken;
 
-  private ExchangeRateRepository exchangeRateRepository;
-  private SeleniumUtils seleniumUtils;
+  private final ExchangeRateRepository exchangeRateRepository;
+  private final SeleniumUtils seleniumUtils;
 
   public ExchangeRateService(ExchangeRateRepository exchangeRateRepository, SeleniumUtils seleniumUtils) {
     this.exchangeRateRepository = exchangeRateRepository;
@@ -34,7 +39,11 @@ public class ExchangeRateService implements ExchangeRateServiceImpl {
   }
 
   @Override
-  public ExchangeRateDTO getTodayExchangeRate(LocalDate currentDate) throws ConnectionFailed {
+  public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
+    // Fecha actual (Prod: UTC / Dev: GMT-5)
+    LocalDate currentDate = this.isProduction ? LocalDateTime.now().minusHours(5).toLocalDate() : LocalDate.now();
+
+    // Buscar en la BD
     ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByDate(currentDate);
     ExchangeRateDTO exchangeRateDTO = null;
 
