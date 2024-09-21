@@ -1,12 +1,17 @@
 {"properties": [
   {
-    "name": "APP_PRODUCTION",
+    "name": "IS_PRODUCTION",
     "type": "java.lang.String",
-    "description": "A description for 'APP_PRODUCTION'"
+    "description": "A description for 'IS_PRODUCTION'"
   },
   {
     "name": "FRONTEND_URL",
     "type": "java.lang.String",
     "description": "A description for 'FRONTEND_URL'"
+  },
+  {
+    "name": "SUNAT_TOKEN",
+    "type": "java.lang.String",
+    "description": "A description for 'SUNAT_TOKEN'"
   }
 ]}

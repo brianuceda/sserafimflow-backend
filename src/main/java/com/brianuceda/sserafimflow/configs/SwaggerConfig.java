@@ -17,8 +17,8 @@ public class SwaggerConfig {
   @Bean
   public OpenAPI swaggerApiConfig() {
     return new OpenAPI().info(new Info()
-      .title("Sserafimflow API")
-      .version("1.0")
-      .description("API for Sserafimflow"));
+        .title("Sserafimflow API")
+        .version("1.0")
+        .description("API for Sserafimflow"));
   }
 }

@@ -1,5 +1,5 @@
-APP_PRODUCTION: true
-FRONTEND_URL: https://sserafimflow.vercel.app
+server:
+    port: 8080
 
 spring:
   datasource:
@@ -18,5 +18,9 @@ spring:
       hibernate:
         format-sql: true
 
-server:
-    port: 8080
+IS_PRODUCTION: true
+FRONTEND_URL: https://sserafimflow.vercel.app
+
+SUNAT_TOKEN: ${SUNAT_TOKEN}
+
+# Swagger: http://localhost:8080/swagger-ui/index.html

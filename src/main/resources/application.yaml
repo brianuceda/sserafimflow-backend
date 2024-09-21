@@ -1,5 +1,5 @@
-APP_PRODUCTION: false
-FRONTEND_URL: http://localhost:4200
+server:
+    port: 8080
 
 spring:
   datasource:
@@ -18,5 +18,7 @@ spring:
       hibernate:
         format-sql: true
 
-server:
-    port: 8080
+IS_PRODUCTION: false
+FRONTEND_URL: http://localhost:4200
+
+SUNAT_TOKEN: apis-token-10610.12f-TXShrNHm3Defoy1qXoSC-tbZhLmo
