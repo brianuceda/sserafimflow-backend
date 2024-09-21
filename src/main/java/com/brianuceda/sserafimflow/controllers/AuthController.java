@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
-import com.brianuceda.sserafimflow.exceptions.DataExceptions.InvalidDate;
 import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
 import com.brianuceda.sserafimflow.implementations.ExchangeRateServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +35,7 @@ public class AuthController {
       ExchangeRateDTO exchangeRate = exchangeRateServiceImpl.getTodayExchangeRate(currentDate);
 
       return new ResponseEntity<ExchangeRateDTO>(exchangeRate, HttpStatus.OK);
-    } catch (ConnectionFailed | InvalidDate e) {
+    } catch (ConnectionFailed e) {
       return new ResponseEntity<ResponseDTO>(new ResponseDTO(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
