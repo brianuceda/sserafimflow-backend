@@ -2,28 +2,29 @@ package com.brianuceda.sserafimflow.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+
 import java.time.LocalDate;
 
 import com.brianuceda.sserafimflow.entities.ExchangeRateEntity;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class ExchangeRateDTO {
-  private BigDecimal precioCompra;
-  private BigDecimal precioVenta;
-  private String moneda;
-  private LocalDate fecha;
+  private LocalDate date;
+  private List<CurrencyRateDTO> currencyRates;
 
-  public ExchangeRateDTO(ExchangeRateEntity exchangeRateEntity) {
-    this.precioCompra = exchangeRateEntity.getPrecioCompra();
-    this.precioVenta = exchangeRateEntity.getPrecioVenta();
-    this.moneda = exchangeRateEntity.getMoneda();
-    this.fecha = exchangeRateEntity.getFecha();
+  public ExchangeRateDTO() {
+    this.currencyRates = new ArrayList<>();
   }
+
+  public ExchangeRateDTO(ExchangeRateEntity currencyRates) {
+    this.date = currencyRates.getDate();
+    this.currencyRates = currencyRates.getCurrencyRates().stream().map(CurrencyRateDTO::new).toList();
+  }
+
 }

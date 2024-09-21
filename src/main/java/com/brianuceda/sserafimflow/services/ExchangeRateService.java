@@ -1,72 +1,118 @@
 package com.brianuceda.sserafimflow.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import java.util.List;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
+import com.brianuceda.sserafimflow.entities.CurrencyRateEntity;
 import com.brianuceda.sserafimflow.entities.ExchangeRateEntity;
 import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
 import com.brianuceda.sserafimflow.implementations.ExchangeRateServiceImpl;
 import com.brianuceda.sserafimflow.respositories.ExchangeRateRepository;
+import com.brianuceda.sserafimflow.utils.SeleniumUtils;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @Service
 public class ExchangeRateService implements ExchangeRateServiceImpl {
   @Value("${SUNAT_TOKEN}")
   private String sunatToken;
 
-  @Autowired
   private ExchangeRateRepository exchangeRateRepository;
+  private SeleniumUtils seleniumUtils;
+
+  public ExchangeRateService(ExchangeRateRepository exchangeRateRepository, SeleniumUtils seleniumUtils) {
+    this.exchangeRateRepository = exchangeRateRepository;
+    this.seleniumUtils = seleniumUtils;
+  }
 
   @Override
-  public ExchangeRateDTO getExchangeRateApi(LocalDate fecha) throws ConnectionFailed {
-    ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByFecha(fecha);
+  public ExchangeRateDTO getTodayExchangeRate(LocalDate currentDate) throws ConnectionFailed {
+    ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByDate(currentDate);
     ExchangeRateDTO exchangeRateDTO = null;
 
-    // Si no existe en la BD, La obtiene de SUNAT y la guarda en la BD
+    // Si no existe en la BD
     if (exchangeRateEntity == null) {
-      exchangeRateDTO = this.getExchangeRateFromSunatApi(fecha);
-      exchangeRateRepository.save(new ExchangeRateEntity(exchangeRateDTO));
+      // Obtener de la página de la SBS
+      exchangeRateDTO = this.getExchangeRateFromSbsPage(currentDate);
+
+      // Asignar relaciones
+      exchangeRateEntity = new ExchangeRateEntity(exchangeRateDTO);
+      for (CurrencyRateEntity currencyRateEntity : exchangeRateEntity.getCurrencyRates()) {
+        currencyRateEntity.setExchangeRate(exchangeRateEntity);
+      }
+
+      // Guardar en la BD
+      exchangeRateRepository.save(exchangeRateEntity);
     } else {
+      // Si existe en la BD, convertir a DTO para retornar
       exchangeRateDTO = new ExchangeRateDTO(exchangeRateEntity);
     }
 
     return exchangeRateDTO;
   }
 
-  private ExchangeRateDTO getExchangeRateFromSunatApi(LocalDate fecha) {
-    // Prueba
-    // ExchangeRateDTO exchangeRateDTO = new ExchangeRateDTO(new BigDecimal("3.744"), new BigDecimal("3.751"), "USD", fecha);
-    // return exchangeRateDTO;
+  private ExchangeRateDTO getExchangeRateFromSbsPage(LocalDate currentDate) throws ConnectionFailed {
+    ThreadLocal<RemoteWebDriver> driver = new ThreadLocal<>();
 
     try {
-      String url = "https://api.apis.net.pe/v2/sunat/tipo-cambio?date=" + fecha; // 2024-09-20
-  
-      RestTemplate restTemplate = new RestTemplate();
-  
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("Authorization", "Bearer " + this.sunatToken);
-      headers.set("Referer", "https://apis.net.pe/tipo-de-cambio-sunat-api");
-  
-      // Entidad de solicitud (con encabezados)
-      HttpEntity<String> entity = new HttpEntity<>(headers);
-  
-      // Realizar solicitud
-      ResponseEntity<ExchangeRateDTO> response = restTemplate.exchange(url, HttpMethod.GET, entity, ExchangeRateDTO.class);
+      seleniumUtils.setUp(driver);
+      driver.get().get("https://www.sbs.gob.pe/app/pp/sistip_portal/paginas/publicacion/tipocambiopromedio.aspx");
 
-      // Obtener respuesta
-      ExchangeRateDTO tasaDeCambio = response.getBody();
+      // Esperar a que cargue el contenido
+      SeleniumUtils.waitUntilTextChanges(driver.get(), By.className("APLI_contenidoInterno"));
 
-      return tasaDeCambio;
-    } catch (Exception e) {
-      throw new ConnectionFailed("No se pudo obtener la tasa de cambio de la fecha " + fecha);
+      // Extraer las filas de la tabla usando un XPath apropiado
+      List<WebElement> rows = driver.get()
+          .findElements(By.xpath("//table[@id='ctl00_cphContent_rgTipoCambio_ctl00']/tbody/tr"));
+
+      ExchangeRateDTO exchangeRateDTO = new ExchangeRateDTO();
+      exchangeRateDTO.setDate(currentDate);
+
+      for (WebElement row : rows) {
+        List<WebElement> cells = row.findElements(By.tagName("td"));
+
+        String currency = cells.get(0).getText().trim();
+
+        if (currency.equals("Dólar de N.A.")) {
+          currency = "USD";
+        } else if (currency.equals("Dólar Canadiense")) {
+          currency = "CAD";
+        } else if (currency.equals("Euro")) {
+          currency = "EUR";
+        } else {
+          continue;
+        }
+
+        String purchasePriceStr = cells.get(1).getText().trim().isEmpty() ? null : cells.get(1).getText().trim();
+        String salePriceStr = cells.get(2).getText().trim().isEmpty() ? null : cells.get(2).getText().trim();
+
+        BigDecimal purchasePriceBD = purchasePriceStr == null ? null : new BigDecimal(purchasePriceStr);
+        BigDecimal salePriceBD = salePriceStr == null ? null : new BigDecimal(salePriceStr);
+
+        if (purchasePriceBD == null || salePriceBD == null) {
+          continue;
+        }
+
+        CurrencyRateDTO currencyRateDTO = new CurrencyRateDTO(currency, purchasePriceBD, salePriceBD);
+
+        exchangeRateDTO.getCurrencyRates().add(currencyRateDTO);
+      }
+
+      return exchangeRateDTO;
+    } catch (Exception ex) {
+      // throw new ConnectionFailed("No se pudo obtener la tasa de cambio de la SBS");
+      throw new ConnectionFailed(ex.getMessage());
+    } finally {
+      seleniumUtils.closeBrowser(driver);
     }
   }
+
 }

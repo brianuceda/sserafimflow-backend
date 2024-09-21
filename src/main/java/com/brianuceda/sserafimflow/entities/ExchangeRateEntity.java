@@ -1,20 +1,23 @@
 package com.brianuceda.sserafimflow.entities;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import java.util.List;
+
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
+
 
 @Data
 @NoArgsConstructor
@@ -26,23 +29,18 @@ public class ExchangeRateEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(precision = 4, scale = 3)
-  @Positive
-  private BigDecimal precioCompra;
-  
-  @Column(precision = 4, scale = 3)
-  @Positive
-  private BigDecimal precioVenta;
+  private LocalDate date; // yyyy-MM-dd
 
-  @Column(length = 3)
-  private String moneda; // USD
+  @OneToMany(mappedBy = "exchangeRate", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<CurrencyRateEntity> currencyRates;
 
-  private LocalDate fecha; // yyyy-MM-dd
+  public ExchangeRateEntity(LocalDate date, List<CurrencyRateEntity> currencyRates) {
+    this.date = date;
+    this.currencyRates = currencyRates;
+  }
 
   public ExchangeRateEntity(ExchangeRateDTO exchangeRateDTO) {
-    this.precioCompra = exchangeRateDTO.getPrecioCompra();
-    this.precioVenta = exchangeRateDTO.getPrecioVenta();
-    this.moneda = exchangeRateDTO.getMoneda();
-    this.fecha = exchangeRateDTO.getFecha();
+    this.date = exchangeRateDTO.getDate();
+    this.currencyRates = exchangeRateDTO.getCurrencyRates().stream().map(CurrencyRateEntity::new).toList();
   }
 }
