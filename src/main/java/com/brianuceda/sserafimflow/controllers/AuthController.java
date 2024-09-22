@@ -3,31 +3,59 @@ package com.brianuceda.sserafimflow.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
+import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
-import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
-import com.brianuceda.sserafimflow.implementations.ExchangeRateServiceImpl;
+import com.brianuceda.sserafimflow.implementations.AuthServiceImpl;
+import com.brianuceda.sserafimflow.utils.DataUtils;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+// import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
-  private final ExchangeRateServiceImpl exchangeRateServiceImpl;
+  @Value("${FRONTEND_URL}")
+  private String frontendUrl;
 
-  public AuthController(ExchangeRateServiceImpl exchangeRateServiceImpl) {
-    this.exchangeRateServiceImpl = exchangeRateServiceImpl;
+  private final AuthServiceImpl authServiceImpl;
+
+  public AuthController(AuthServiceImpl authServiceImpl) {
+    this.authServiceImpl = authServiceImpl;
   }
 
-  @GetMapping("today-exchange-rate-sbs")
-  public ResponseEntity<?> getTodayExchangeRate() {
+  @PostMapping("register")
+  public ResponseEntity<ResponseDTO> register(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
     try {
-      ExchangeRateDTO exchangeRate = exchangeRateServiceImpl.getTodayExchangeRate();
+      this.validationsAuth(request, companyDTO);
 
-      return new ResponseEntity<ExchangeRateDTO>(exchangeRate, HttpStatus.OK);
-    } catch (ConnectionFailed e) {
-      return new ResponseEntity<ResponseDTO>(new ResponseDTO(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(this.authServiceImpl.register(companyDTO), HttpStatus.OK);
+    } catch (BadCredentialsException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.UNAUTHORIZED);
     }
+  }
+
+  @PostMapping("login")
+  public ResponseEntity<ResponseDTO> login(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
+    try {
+      this.validationsAuth(request, companyDTO);
+
+      return new ResponseEntity<>(this.authServiceImpl.login(companyDTO), HttpStatus.OK);
+    } catch (BadCredentialsException ex) {
+      return new ResponseEntity<>(new ResponseDTO("Credenciales incorrectas"), HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  private void validationsAuth(HttpServletRequest request, CompanyDTO companyDTO) {
+    // DataUtils.verifyAllowedOrigin(request, Arrays.asList(this.frontendUrl));
+    DataUtils.verifySQLInjection(companyDTO.getEmail());
+    DataUtils.verifySQLInjection(companyDTO.getPassword());
   }
 }

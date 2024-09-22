@@ -11,9 +11,9 @@ import com.brianuceda.sserafimflow.entities.ExchangeRateEntity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExchangeRateDTO {
   private LocalDate date;
   private List<CurrencyRateDTO> currencyRates;
