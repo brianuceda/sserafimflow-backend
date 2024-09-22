@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 @Component
-@SuppressWarnings("unused")
 public class SeleniumUtils {
   @Value("${IS_PRODUCTION}")
   private boolean isProduction;

@@ -6,29 +6,34 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
-import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
-import com.brianuceda.sserafimflow.exceptions.SecurityExceptions.ProtectedResource;
-import com.brianuceda.sserafimflow.exceptions.SecurityExceptions.SQLInjectionException;
+import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.*;
+import com.brianuceda.sserafimflow.exceptions.SecurityExceptions.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
   // Security Exceptions
   @ExceptionHandler(ProtectedResource.class)
   public ResponseEntity<?> handleProtectedResource(ProtectedResource ex) {
-    ResponseDTO response = new ResponseDTO(ex.getMessage(), 401);
-    return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+    ResponseDTO response = new ResponseDTO(ex.getMessage());
+    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler(SQLInjectionException.class)
   public ResponseEntity<?> handleSQLInjectionException(SQLInjectionException ex) {
-    ResponseDTO response = new ResponseDTO(ex.getMessage(), 401);
-    return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+    ResponseDTO response = new ResponseDTO(ex.getMessage());
+    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler(BlacklistedTokenException.class)
+  public ResponseEntity<?> handleBlacklistedTokenException(BlacklistedTokenException ex) {
+    ResponseDTO response = new ResponseDTO(ex.getMessage());
+    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
   }
 
   // General Exceptions
   @ExceptionHandler(ConnectionFailed.class)
   public ResponseEntity<?> handleConnectionFailed(ConnectionFailed ex) {
-    ResponseDTO response = new ResponseDTO(ex.getMessage(), 500);
-    return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+    ResponseDTO response = new ResponseDTO(ex.getMessage());
+    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

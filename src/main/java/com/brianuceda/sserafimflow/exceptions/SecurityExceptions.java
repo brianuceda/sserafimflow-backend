@@ -12,4 +12,10 @@ public class SecurityExceptions {
       super(message);
     }
   }
+  
+  public static class BlacklistedTokenException extends RuntimeException {
+    public BlacklistedTokenException(String message) {
+      super(message);
+    }
+  }
 }

@@ -19,8 +19,10 @@ spring:
         format-sql: true
 
 IS_PRODUCTION: true
+
 FRONTEND_URL: https://sserafimflow.vercel.app
 
-SUNAT_TOKEN: ${SUNAT_TOKEN}
+JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+JWT_EXP_TIME: ${JWT_EXP_TIME}
 
 # Swagger: http://localhost:8080/swagger-ui/index.html

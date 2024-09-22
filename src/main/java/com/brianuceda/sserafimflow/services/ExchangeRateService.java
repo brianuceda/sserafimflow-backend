@@ -27,9 +27,6 @@ public class ExchangeRateService implements ExchangeRateServiceImpl {
   @Value("${IS_PRODUCTION}")
   private boolean isProduction;
 
-  @Value("${SUNAT_TOKEN}")
-  private String sunatToken;
-
   private final ExchangeRateRepository exchangeRateRepository;
   private final SeleniumUtils seleniumUtils;
 

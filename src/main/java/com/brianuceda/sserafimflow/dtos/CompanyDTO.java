@@ -3,20 +3,18 @@ package com.brianuceda.sserafimflow.dtos;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ResponseDTO {
-  private String message;
-  private String token;
-
-  public ResponseDTO(String message) {
-    this.message = message;
-  }
+public class CompanyDTO {
+  private String companyName;
+  private String ruc;
+  private String email; // username
+  private String password;
+  
+  private Boolean isRealRuc;
 }

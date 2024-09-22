@@ -4,7 +4,12 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### OWN ###
 venv/
+.env
+src/main/resources/logback.xml
+src/main/resources/application.yaml
+logs/**
 
 ### STS ###
 .apt_generated
