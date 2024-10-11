@@ -37,10 +37,10 @@ public class AuthService implements AuthServiceImpl {
     }
 
     // Buscar si el RUC es real, si es real, obtener el nombre de la empresa
-    if (companyDTO.getIsRealRuc()) {
-      // Llamar a la API de la SUNAT
-      companyDTO.setCompanyName("Empresa de prueba");
-    }
+    // if (companyDTO.getIsRealRuc()) {
+    // Llamar a la API de la SUNAT
+    // companyDTO.setCompanyName("Empresa de prueba");
+    // }
 
     CompanyEntity user = CompanyEntity.builder()
         .companyName(companyDTO.getCompanyName())
@@ -53,7 +53,10 @@ public class AuthService implements AuthServiceImpl {
 
     companyRepository.save(user);
 
-    return new ResponseDTO("Compañía registrada correctamente", jwtUtils.genToken(user));
+    ResponseDTO response = new ResponseDTO();
+    response.setToken(jwtUtils.genToken(user));
+
+    return response;
   }
 
   @Override
@@ -65,10 +68,10 @@ public class AuthService implements AuthServiceImpl {
     // Obtiene los detalles del usuario
     UserDetails userDetails = companyRepository.findByUsername(companyDTO.getEmail()).get();
 
-    // Genera el token
-    String token = jwtUtils.genToken(userDetails);
+    ResponseDTO response = new ResponseDTO();
+    response.setToken(jwtUtils.genToken(userDetails));
 
-    return new ResponseDTO("Sesión iniciada correctamente", token);
+    return response;
   }
 
   @Override

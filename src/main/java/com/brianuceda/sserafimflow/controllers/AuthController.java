@@ -49,7 +49,7 @@ public class AuthController {
 
       return new ResponseEntity<>(this.authServiceImpl.login(companyDTO), HttpStatus.OK);
     } catch (BadCredentialsException ex) {
-      return new ResponseEntity<>(new ResponseDTO("Credenciales incorrectas"), HttpStatus.UNAUTHORIZED);
+      return new ResponseEntity<>(new ResponseDTO("Credenciales inválidas"), HttpStatus.UNAUTHORIZED);
     }
   }
 

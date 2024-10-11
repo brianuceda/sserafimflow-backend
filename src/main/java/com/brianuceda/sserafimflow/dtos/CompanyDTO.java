@@ -1,5 +1,6 @@
 package com.brianuceda.sserafimflow.dtos;
 
+import com.brianuceda.sserafimflow.enums.RoleEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
@@ -11,10 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CompanyDTO {
-  private String companyName;
-  private String ruc;
   private String email; // username
   private String password;
-  
-  private Boolean isRealRuc;
+  private RoleEnum role;
+  private String companyName;
+  private String ruc;
 }
