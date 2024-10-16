@@ -22,11 +22,14 @@ import com.brianuceda.sserafimflow.filters.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
-  @Value("${FRONTEND_URL}")
-  private String frontendUrl;
+  @Value("${FRONTEND_URL1}")
+  private String frontendUrl1;
+  @Value("${FRONTEND_URL2}")
+  private String frontendUrl2;
 
   private final String[] ALLOWED_ORIGINS = {
-      this.frontendUrl,
+      this.frontendUrl1,
+      this.frontendUrl2,
   };
 
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -53,6 +56,7 @@ public class WebSecurityConfig {
           configuration.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGINS));
           configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
           configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+          // configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 
           return configuration;
         }))

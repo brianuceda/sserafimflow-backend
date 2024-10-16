@@ -31,7 +31,7 @@ public class AuthService implements AuthServiceImpl {
   }
 
   @Override
-  public ResponseDTO register(CompanyDTO companyDTO) {
+  public ResponseDTO signup(CompanyDTO companyDTO) {
     if (companyRepository.findByUsername(companyDTO.getEmail()).isPresent()) {
       throw new BadCredentialsException("El usuario ya existe");
     }
@@ -60,7 +60,7 @@ public class AuthService implements AuthServiceImpl {
   }
 
   @Override
-  public ResponseDTO login(CompanyDTO companyDTO) {
+  public ResponseDTO signin(CompanyDTO companyDTO) {
     // Autentica al usuario
     authenticationManager
         .authenticate(new UsernamePasswordAuthenticationToken(companyDTO.getEmail(), companyDTO.getPassword()));

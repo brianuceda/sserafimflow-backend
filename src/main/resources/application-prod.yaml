@@ -20,7 +20,8 @@ spring:
 
 IS_PRODUCTION: true
 
-FRONTEND_URL: https://sserafimflow.vercel.app
+FRONTEND_URL1: https://sserafimflow.vercel.app
+FRONTEND_URL2: http://localhost:4200
 
 JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 JWT_EXP_TIME: ${JWT_EXP_TIME}
