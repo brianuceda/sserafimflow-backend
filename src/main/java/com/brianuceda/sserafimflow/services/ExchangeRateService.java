@@ -12,10 +12,13 @@ import com.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.entities.CurrencyRateEntity;
 import com.brianuceda.sserafimflow.entities.ExchangeRateEntity;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
-import com.brianuceda.sserafimflow.implementations.ExchangeRateServiceImpl;
+import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 import com.brianuceda.sserafimflow.respositories.ExchangeRateRepository;
 import com.brianuceda.sserafimflow.utils.SeleniumUtils;
+
+import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
@@ -23,7 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
-public class ExchangeRateService implements ExchangeRateServiceImpl {
+public class ExchangeRateService implements ExchangeRateImpl {
   @Value("${IS_PRODUCTION}")
   private boolean isProduction;
 
@@ -36,6 +39,7 @@ public class ExchangeRateService implements ExchangeRateServiceImpl {
   }
 
   @Override
+  @Transactional
   public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
     // Fecha actual (Prod: UTC / Dev: GMT-5)
     LocalDate currentDate = this.isProduction ? LocalDateTime.now().minusHours(5).toLocalDate() : LocalDate.now();
@@ -85,14 +89,15 @@ public class ExchangeRateService implements ExchangeRateServiceImpl {
       for (WebElement row : rows) {
         List<WebElement> cells = row.findElements(By.tagName("td"));
 
-        String currency = cells.get(0).getText().trim();
+        String currencyCell = cells.get(0).getText().trim();
+        CurrencyEnum currency = null;
 
-        if (currency.equals("Dólar de N.A.")) {
-          currency = "USD";
-        } else if (currency.equals("Dólar Canadiense")) {
-          currency = "CAD";
-        } else if (currency.equals("Euro")) {
-          currency = "EUR";
+        if (currencyCell.equals("Dólar de N.A.")) {
+          currency = CurrencyEnum.USD;
+        } else if (currencyCell.equals("Dólar Canadiense")) {
+          currency = CurrencyEnum.CAD;
+        } else if (currencyCell.equals("Euro")) {
+          currency = CurrencyEnum.EUR;
         } else {
           continue;
         }

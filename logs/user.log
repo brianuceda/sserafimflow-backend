@@ -1,0 +1,2 @@
+00:14:26.870 [scheduling-1] INFO  c.b.sserafimflow.configs.Scheduler - La hora actual es 0 am y no se encuentra dentro del rango de [1 a 3] am
+01:21:13.566 [scheduling-1] INFO  c.b.sserafimflow.configs.Scheduler - Guardando el tipo de cambio del dia 23-10-2024

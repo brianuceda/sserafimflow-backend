@@ -10,5 +10,4 @@ import com.brianuceda.sserafimflow.entities.CompanyEntity;
 @Repository
 public interface CompanyRepository extends JpaRepository<CompanyEntity, Long> {
   Optional<CompanyEntity> findByUsername(String username);
-    
 }

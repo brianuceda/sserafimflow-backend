@@ -1,6 +1,10 @@
 package com.brianuceda.sserafimflow.dtos;
 
-import com.brianuceda.sserafimflow.enums.RoleEnum;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+
+import com.brianuceda.sserafimflow.entities.CompanyEntity;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
@@ -12,9 +16,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CompanyDTO {
-  private String email; // username
-  private String password;
-  private RoleEnum role;
-  private String companyName;
+  private String realName;
   private String ruc;
+  private String username;
+  private String password;
+  private String image;
+  private CurrencyEnum currency;
+  private BigDecimal balance;
+  private Timestamp creationDate;
+
+  public CompanyDTO(CompanyEntity company) {
+    this.realName = company.getRealName();
+    this.ruc = company.getRuc();
+    this.username = company.getUsername();
+    this.image = company.getImage();
+    this.currency = company.getCurrency();
+    this.balance = company.getBalance();
+    this.creationDate = company.getCreationDate();
+  }
+
+  // Para mostrar en la compra
+  public CompanyDTO(String realName, String ruc, String image) {
+    this.realName = realName;
+    this.ruc = ruc;
+    this.image = image;
+  }
 }

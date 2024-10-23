@@ -20,8 +20,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "company")
-public class CompanyEntity implements UserDetails {
+@Table(name = "bank")
+public class BankEntity implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -45,7 +45,6 @@ public class CompanyEntity implements UserDetails {
   private CurrencyEnum currency;
 
   @Column(precision = 16, scale = 4, nullable = false)
-  @Positive
   private BigDecimal balance;
 
   @Enumerated(EnumType.STRING)
@@ -55,11 +54,20 @@ public class CompanyEntity implements UserDetails {
   @Column(nullable = false)
   private Timestamp creationDate;
 
-  @OneToMany(mappedBy = "company")
-  private List<DocumentEntity> documents;
+  @Column(precision = 5, scale = 4, nullable = false)
+  @Positive
+  private BigDecimal nominalRate;
 
-  @OneToMany(mappedBy = "company")
-  private List<PortfolioEntity> portfolios;
+  @Column(precision = 5, scale = 4, nullable = false)
+  @Positive
+  private BigDecimal effectiveRate;
+
+  @Column(precision = 16, scale = 4, nullable = true)
+  @Positive
+  private BigDecimal extraCommission;
+  
+  @OneToMany(mappedBy = "bank")
+  private List<PurchaseEntity> purchases;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

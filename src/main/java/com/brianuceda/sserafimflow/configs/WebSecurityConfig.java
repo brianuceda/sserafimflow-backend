@@ -22,6 +22,8 @@ import com.brianuceda.sserafimflow.filters.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
+  @Value("${IS_PRODUCTION}")
+  private Boolean isProduction;
   @Value("${FRONTEND_URL1}")
   private String frontendUrl1;
   @Value("${FRONTEND_URL2}")
@@ -56,13 +58,15 @@ public class WebSecurityConfig {
           configuration.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGINS));
           configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
           configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-          // configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+          configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 
           return configuration;
         }))
         .authorizeHttpRequests(authRequest -> {
           authRequest.requestMatchers("/api/v1/auth/**").permitAll();
+          authRequest.requestMatchers("/api/v1/logs/**").permitAll();
           authRequest.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll();
+          
           authRequest.anyRequest().authenticated();
         })
         .sessionManagement(sessionManagement -> {

@@ -6,19 +6,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.brianuceda.sserafimflow.respositories.CompanyRepository;
+import com.brianuceda.sserafimflow.services._CustomUserDetailsService;
 
 @Configuration
 public class ApplicationConfig {
-  private CompanyRepository companyRepository;
+  private final _CustomUserDetailsService customUserDetailsService;
 
-  public ApplicationConfig(CompanyRepository companyRepository) {
-    this.companyRepository = companyRepository;
+  public ApplicationConfig(_CustomUserDetailsService customUserDetailsService) {
+    this.customUserDetailsService = customUserDetailsService;
   }
 
   @Bean
@@ -28,16 +26,10 @@ public class ApplicationConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-    authenticationProvider.setUserDetailsService(userDetailService());
-    authenticationProvider.setPasswordEncoder(passwordEncoder());
-    return authenticationProvider;
-  }
-
-  @Bean
-  public UserDetailsService userDetailService() {
-    return username -> companyRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado."));
+    DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+    provider.setUserDetailsService(customUserDetailsService);
+    provider.setPasswordEncoder(passwordEncoder());
+    return provider;
   }
 
   @Bean

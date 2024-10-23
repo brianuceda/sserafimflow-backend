@@ -16,6 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.brianuceda.sserafimflow.entities.BankEntity;
+import com.brianuceda.sserafimflow.entities.CompanyEntity;
+import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.io.Decoders;
@@ -29,12 +33,19 @@ public class JwtUtils {
   private String jwtSecretKey;
   @Value("${JWT_EXP_TIME}")
   private String jwtExpTime;
-  
+
   // Blacklist de Tokens
   private Set<String> memoryBackendBlacklistedTokens = new HashSet<>();
 
   public String genToken(UserDetails user) {
     Map<String, Object> extraClaims = new HashMap<>();
+
+    if (user instanceof CompanyEntity) {
+      extraClaims.put("role", AuthRoleEnum.COMPANY.name());
+    } else if (user instanceof BankEntity) {
+      extraClaims.put("role", AuthRoleEnum.BANK.name());
+    }
+
     return genToken(extraClaims, user);
   }
 
@@ -70,11 +81,20 @@ public class JwtUtils {
     return getClaim(token, Claims::getSubject);
   }
 
+  public AuthRoleEnum getRoleFromToken(String token) {
+    String roleString = getClaim(token, claims -> claims.get("role", String.class));
+    try {
+      return AuthRoleEnum.valueOf(roleString);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException("Rol inválido");
+    }
+  }
+
   public boolean isValidToken(String token, UserDetails userDetails) {
     final String username = getUsernameFromToken(token);
     return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
   }
-    
+
   public void addTokenToBlacklist(String token) {
     memoryBackendBlacklistedTokens.add(token);
   }

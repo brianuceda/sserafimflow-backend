@@ -2,6 +2,8 @@ package com.brianuceda.sserafimflow.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +17,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 import com.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 
 @Data
 @NoArgsConstructor
@@ -26,18 +29,18 @@ public class CurrencyRateEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(length = 3)
-  private String currency; // USD
+  @Column(nullable = false)
+  @Enumerated(EnumType.STRING)
+  private CurrencyEnum currency;
 
-  @Column(precision = 6, scale = 3)
+  @Column(precision = 5, scale = 4, nullable = true)
   @Positive
   private BigDecimal purchasePrice;
 
-  @Column(precision = 6, scale = 3)
+  @Column(precision = 5, scale = 4, nullable = true)
   @Positive
   private BigDecimal salePrice;
 
-  // Relación con ExchangeRate
   @ManyToOne
   @JoinColumn(name = "exchange_rate_id")
   private ExchangeRateEntity exchangeRate;

@@ -4,25 +4,29 @@ import java.io.IOException;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
 import com.brianuceda.sserafimflow.exceptions.SecurityExceptions.BlacklistedTokenException;
+import com.brianuceda.sserafimflow.services._CustomUserDetailsService;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.java.Log;
 
 @Component
+@Log
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-  private final UserDetailsService userDetailsService;
+  private final _CustomUserDetailsService customUserDetailsService;
   private final JwtUtils jwtUtils;
 
-  public JwtAuthenticationFilter(UserDetailsService userDetailsService, JwtUtils jwtUtils) {
-    this.userDetailsService = userDetailsService;
+  public JwtAuthenticationFilter(_CustomUserDetailsService customUserDetailsService, JwtUtils jwtUtils) {
+    this.customUserDetailsService = customUserDetailsService;
     this.jwtUtils = jwtUtils;
   }
 
@@ -38,11 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     if (token != null && !token.isEmpty()) {
       String username = jwtUtils.getUsernameFromToken(token);
+      AuthRoleEnum role = jwtUtils.getRoleFromToken(token);
+
+      System.out.println("Username: " + username + " Role: " + role);
 
       if (username != null) {
-        var userDetails = userDetailsService.loadUserByUsername(username);
+          UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
-        if (jwtUtils.isValidToken(token, userDetails)) {
+        if (userDetails != null && jwtUtils.isValidToken(token, userDetails)) {
           var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
           SecurityContextHolder.getContext().setAuthentication(authentication);
         }

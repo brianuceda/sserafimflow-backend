@@ -1,17 +1,18 @@
 package com.brianuceda.sserafimflow.controllers;
 
+import java.math.BigDecimal;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
-import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
-import com.brianuceda.sserafimflow.implementations.AuthServiceImpl;
-import com.brianuceda.sserafimflow.implementations.ExchangeRateServiceImpl;
+import com.brianuceda.sserafimflow.implementations.CompanyImpl;
+import com.brianuceda.sserafimflow.implementations._AuthCompanyImpl;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,34 +23,46 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequestMapping("/api/v1/company")
 public class CompanyController {
   private final JwtUtils jwtUtils;
-  private final AuthServiceImpl authServiceImpl;
-  private final ExchangeRateServiceImpl exchangeRateServiceImpl;
+  private final _AuthCompanyImpl authCompanyImpl;
+  private final CompanyImpl companyImpl;
 
-  public CompanyController(AuthServiceImpl authServiceImpl, ExchangeRateServiceImpl exchangeRateServiceImpl,
-      JwtUtils jwtUtils) {
-    this.authServiceImpl = authServiceImpl;
-    this.exchangeRateServiceImpl = exchangeRateServiceImpl;
+  public CompanyController(
+      _AuthCompanyImpl authCompanyImpl,
+      JwtUtils jwtUtils,
+      CompanyImpl companyImpl) {
+    
+    this.authCompanyImpl = authCompanyImpl;
     this.jwtUtils = jwtUtils;
+    this.companyImpl = companyImpl;
   }
 
-  @PostMapping("logout")
+  @PreAuthorize("hasRole('COMPANY')")
+  @PostMapping("/logout")
   public ResponseEntity<ResponseDTO> logout(HttpServletRequest request) {
     try {
       var token = jwtUtils.getTokenFromRequest(request);
-
-      return new ResponseEntity<>(authServiceImpl.logout(token), HttpStatus.OK);
+      return new ResponseEntity<>(authCompanyImpl.logout(token), HttpStatus.OK);
     } catch (BadCredentialsException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
-
-  @GetMapping("today-exchange-rate-sbs")
-  public ResponseEntity<?> getTodayExchangeRate() {
+  
+  @PreAuthorize("hasRole('COMPANY')")
+  @GetMapping("/profile")
+  public ResponseEntity<?> getProfile(HttpServletRequest request, BigDecimal amount) {
     try {
-      return new ResponseEntity<ExchangeRateDTO>(exchangeRateServiceImpl.getTodayExchangeRate(), HttpStatus.OK);
-    } catch (ConnectionFailed e) {
-      return new ResponseEntity<ResponseDTO>(new ResponseDTO(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+      String token = this.jwtUtils.getTokenFromRequest(request);
+      String username = this.jwtUtils.getUsernameFromToken(token);
+
+      return new ResponseEntity<>(companyImpl.getProfile(username), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
 
+  @PreAuthorize("hasRole('COMPANY')")
+  @GetMapping("/dashboard")
+  public ResponseEntity<ResponseDTO> accessCompanyDashboard() {
+    return new ResponseEntity<>(new ResponseDTO("Access granted to Company Dashboard!"), HttpStatus.OK);
+  }
 }

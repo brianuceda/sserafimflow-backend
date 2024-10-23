@@ -1,28 +1,32 @@
 package com.brianuceda.sserafimflow.services;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
-import com.brianuceda.sserafimflow.enums.RoleEnum;
-import com.brianuceda.sserafimflow.implementations.AuthServiceImpl;
+import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
+import com.brianuceda.sserafimflow.implementations._AuthCompanyImpl;
 import com.brianuceda.sserafimflow.respositories.CompanyRepository;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
 
 @Service
-public class AuthService implements AuthServiceImpl {
+public class _AuthCompanyService implements _AuthCompanyImpl {
   private final AuthenticationManager authenticationManager;
   private final PasswordEncoder passwordEncoder;
   private final JwtUtils jwtUtils;
   private final CompanyRepository companyRepository;
 
-  public AuthService(AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, JwtUtils jwtUtils,
+  public _AuthCompanyService(AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder,
+      JwtUtils jwtUtils,
       CompanyRepository companyRepository) {
     this.authenticationManager = authenticationManager;
     this.passwordEncoder = passwordEncoder;
@@ -31,46 +35,38 @@ public class AuthService implements AuthServiceImpl {
   }
 
   @Override
-  public ResponseDTO signup(CompanyDTO companyDTO) {
-    if (companyRepository.findByUsername(companyDTO.getEmail()).isPresent()) {
-      throw new BadCredentialsException("El usuario ya existe");
+  public ResponseDTO register(CompanyDTO companyDTO) {
+    if (companyRepository.findByUsername(companyDTO.getUsername()).isPresent()) {
+      throw new BadCredentialsException("La empresa ya existe");
     }
 
-    // Buscar si el RUC es real, si es real, obtener el nombre de la empresa
-    // if (companyDTO.getIsRealRuc()) {
-    // Llamar a la API de la SUNAT
-    // companyDTO.setCompanyName("Empresa de prueba");
-    // }
-
-    CompanyEntity user = CompanyEntity.builder()
-        .companyName(companyDTO.getCompanyName())
+    CompanyEntity company = CompanyEntity.builder()
+        .realName(companyDTO.getRealName())
         .ruc(companyDTO.getRuc())
-        .username(companyDTO.getEmail())
+        .username(companyDTO.getUsername())
         .password(passwordEncoder.encode(companyDTO.getPassword()))
+        .image(companyDTO.getImage() != null ? companyDTO.getImage() : "https://i.ibb.co/BrwL76K/company.png")
+        .currency(CurrencyEnum.PEN)
+        .balance(BigDecimal.valueOf(0.0))
+        .role(AuthRoleEnum.COMPANY)
+        .creationDate(Timestamp.from(Instant.now()))
         .build();
 
-    user.setRole(RoleEnum.COMPANY);
-
-    companyRepository.save(user);
+    companyRepository.save(company);
 
     ResponseDTO response = new ResponseDTO();
-    response.setToken(jwtUtils.genToken(user));
+    response.setToken(jwtUtils.genToken(company));
 
     return response;
   }
 
   @Override
-  public ResponseDTO signin(CompanyDTO companyDTO) {
-    // Autentica al usuario
+  public ResponseDTO login(CompanyDTO companyDTO) {
     authenticationManager
-        .authenticate(new UsernamePasswordAuthenticationToken(companyDTO.getEmail(), companyDTO.getPassword()));
-
-    // Obtiene los detalles del usuario
-    UserDetails userDetails = companyRepository.findByUsername(companyDTO.getEmail()).get();
-
+        .authenticate(new UsernamePasswordAuthenticationToken(companyDTO.getUsername(), companyDTO.getPassword()));
+    UserDetails userDetails = companyRepository.findByUsername(companyDTO.getUsername()).get();
     ResponseDTO response = new ResponseDTO();
     response.setToken(jwtUtils.genToken(userDetails));
-
     return response;
   }
 
@@ -83,5 +79,4 @@ public class AuthService implements AuthServiceImpl {
       throw new BadCredentialsException("No se pudo desconectar");
     }
   }
-
 }
