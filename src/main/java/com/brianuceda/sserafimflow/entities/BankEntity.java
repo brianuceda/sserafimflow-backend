@@ -25,21 +25,21 @@ public class BankEntity implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
-  @Column(nullable = false)
+  
+  @Column(nullable = false, length = 255)
   private String realName;
 
-  @Column(unique = true, nullable = true, length = 11)
+  @Column(unique = true, nullable = false, length = 11)
   private String ruc;
 
-  @Column(unique = true, nullable = false)
+  @Column(unique = true, nullable = false, length = 150)
   private String username; // Email
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 150)
   private String password;
 
   @Column(nullable = true)
-  private String image;
+  private String imageUrl;
 
   @Column(nullable = false)
   private CurrencyEnum currency;
@@ -54,11 +54,11 @@ public class BankEntity implements UserDetails {
   @Column(nullable = false)
   private Timestamp creationDate;
 
-  @Column(precision = 5, scale = 4, nullable = false)
+  @Column(precision = 6, scale = 4, nullable = false)
   @Positive
   private BigDecimal nominalRate;
 
-  @Column(precision = 5, scale = 4, nullable = false)
+  @Column(precision = 6, scale = 4, nullable = false)
   @Positive
   private BigDecimal effectiveRate;
 

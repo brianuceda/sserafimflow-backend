@@ -1,32 +1,39 @@
-{"properties": [
-  {
-    "name": "IS_PRODUCTION",
-    "type": "java.lang.String",
-    "description": "A description for 'IS_PRODUCTION'"
-  },
-  {
-    "name": "SUNAT_TOKEN",
-    "type": "java.lang.String",
-    "description": "A description for 'SUNAT_TOKEN'"
-  },
-  {
-    "name": "JWT_SECRET_KEY",
-    "type": "java.lang.String",
-    "description": "A description for 'JWT_SECRET_KEY'"
-  },
-  {
-    "name": "JWT_EXP_TIME",
-    "type": "java.lang.String",
-    "description": "A description for 'JWT_EXP_TIME'"
-  },
-  {
-    "name": "FRONTEND_URL1",
-    "type": "java.lang.String",
-    "description": "A description for 'FRONTEND_URL1'"
-  },
-  {
-    "name": "FRONTEND_URL2",
-    "type": "java.lang.String",
-    "description": "A description for 'FRONTEND_URL2'"
-  }
-]}
+{
+  "properties": [
+    {
+      "name": "IS_PRODUCTION",
+      "type": "java.lang.String",
+      "description": "A description for 'IS_PRODUCTION'"
+    },
+    {
+      "name": "SUNAT_TOKEN",
+      "type": "java.lang.String",
+      "description": "A description for 'SUNAT_TOKEN'"
+    },
+    {
+      "name": "JWT_SECRET_KEY",
+      "type": "java.lang.String",
+      "description": "A description for 'JWT_SECRET_KEY'"
+    },
+    {
+      "name": "JWT_EXP_TIME",
+      "type": "java.lang.String",
+      "description": "A description for 'JWT_EXP_TIME'"
+    },
+    {
+      "name": "FRONTEND_URL1",
+      "type": "java.lang.String",
+      "description": "A description for 'FRONTEND_URL1'"
+    },
+    {
+      "name": "FRONTEND_URL2",
+      "type": "java.lang.String",
+      "description": "A description for 'FRONTEND_URL2'"
+    },
+    {
+      "name": "application.bucket.name",
+      "type": "java.lang.String",
+      "description": "A description for 'application.bucket.name'"
+    }
+  ]
+}

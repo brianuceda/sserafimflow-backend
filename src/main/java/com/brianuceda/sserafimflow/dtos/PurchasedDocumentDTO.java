@@ -55,7 +55,7 @@ public class PurchasedDocumentDTO {
     this.company = new CompanyDTO(
       purchase.getDocument().getCompany().getRealName(),
       purchase.getDocument().getCompany().getRuc(),
-      purchase.getDocument().getCompany().getImage()
+      purchase.getDocument().getCompany().getImageUrl()
     );
 
     this.document = new DocumentDTO(

@@ -15,7 +15,6 @@ import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 @RestController
 @RequestMapping("/api/v1/general")
 public class GeneralController {
-
   private final ExchangeRateImpl exchangeRateImpl;
 
   public GeneralController(ExchangeRateImpl exchangeRateImpl) {
@@ -30,5 +29,11 @@ public class GeneralController {
     } catch (ConnectionFailed e) {
       return new ResponseEntity<ResponseDTO>(new ResponseDTO(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @PreAuthorize("hasAnyRole('COMPANY', 'BANK')")
+  @GetMapping("/is-valid-token")
+  public ResponseEntity<?> isValidToken() {
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 }

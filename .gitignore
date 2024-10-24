@@ -9,6 +9,7 @@ venv/
 .env
 # src/main/resources/logback.xml
 src/main/resources/application.yaml
+.env
 # logs/**
 
 ### STS ###

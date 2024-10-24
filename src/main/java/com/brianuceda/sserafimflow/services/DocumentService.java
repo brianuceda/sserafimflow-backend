@@ -18,7 +18,6 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class DocumentService implements DocumentImpl {
-
   private final CompanyRepository companyRepository;
   private final DocumentRepository documentRepository;
 

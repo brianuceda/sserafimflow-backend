@@ -5,9 +5,9 @@ spring:
   # main:
   #   allow-bean-definition-overriding: true
   datasource:
-    url: jdbc:postgresql://postgresdb:5432/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maxLifetime: 150000
@@ -19,11 +19,28 @@ spring:
     properties:
       hibernate:
         format-sql: true
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2MB
+      max-file-size: 2MB
+      max-request-size: 5MB
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ${AWS_REGION}
+    stack:
+      auto: false
+
+application:
+  bucket:
+    name: ${S3_BUCKET_NAME}
 
 IS_PRODUCTION: true
-
-FRONTEND_URL1: https://sserafimflow.vercel.app
-FRONTEND_URL2: http://localhost:4200
 
 JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 JWT_EXP_TIME: ${JWT_EXP_TIME}

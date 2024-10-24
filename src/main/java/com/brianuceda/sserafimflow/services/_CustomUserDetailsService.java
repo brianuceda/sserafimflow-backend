@@ -10,7 +10,6 @@ import com.brianuceda.sserafimflow.respositories.CompanyRepository;
 
 @Service
 public class _CustomUserDetailsService implements UserDetailsService {
-
   private final CompanyRepository companyRepository;
   private final BankRepository bankRepository;
 

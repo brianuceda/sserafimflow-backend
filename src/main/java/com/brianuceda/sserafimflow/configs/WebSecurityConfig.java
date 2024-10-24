@@ -18,20 +18,19 @@ import com.brianuceda.sserafimflow.filters.JwtAccessDeniedHandler;
 import com.brianuceda.sserafimflow.filters.JwtAuthenticationEntryPoint;
 import com.brianuceda.sserafimflow.filters.JwtAuthenticationFilter;
 
+import lombok.extern.java.Log;
+
+@Log
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
   @Value("${IS_PRODUCTION}")
   private Boolean isProduction;
-  @Value("${FRONTEND_URL1}")
-  private String frontendUrl1;
-  @Value("${FRONTEND_URL2}")
-  private String frontendUrl2;
 
   private final String[] ALLOWED_ORIGINS = {
-      this.frontendUrl1,
-      this.frontendUrl2,
+    "https://sserafimflow.vercel.app",
+    "http://localhost:4200"
   };
 
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -58,7 +57,8 @@ public class WebSecurityConfig {
           configuration.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGINS));
           configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
           configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
-          configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+          configuration.setAllowCredentials(true);
+          configuration.setMaxAge(3600L);
 
           return configuration;
         }))

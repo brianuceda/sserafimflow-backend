@@ -27,7 +27,7 @@ public class BankService implements BankImpl {
     BankEntity bank = bankRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
-    return new BankDTO(bank);
+    return new BankDTO(bank, false);
   }
 
   @Override
@@ -58,7 +58,7 @@ public class BankService implements BankImpl {
     // List<BankDTO> banksDTOs = banks.stream().map(bank -> new BankDTO(bank, true)).toList();
 
     for (BankEntity bank : banks) {
-      BankDTO bankDTO = new BankDTO(bank);
+      BankDTO bankDTO = new BankDTO(bank, true);
       bankDTO.setUsername(null);
       bankDTO.setPassword(null);
       bankDTO.setBalance(null);

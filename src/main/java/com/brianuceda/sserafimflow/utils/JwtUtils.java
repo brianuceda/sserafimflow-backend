@@ -1,7 +1,6 @@
 package com.brianuceda.sserafimflow.utils;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import com.brianuceda.sserafimflow.entities.BankEntity;
-import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
 
 import io.jsonwebtoken.Jwts;
@@ -37,24 +34,17 @@ public class JwtUtils {
   // Blacklist de Tokens
   private Set<String> memoryBackendBlacklistedTokens = new HashSet<>();
 
-  public String genToken(UserDetails user) {
-    Map<String, Object> extraClaims = new HashMap<>();
+  public String genToken(UserDetails user, Map<String, Object> extraClaims, Boolean rememberMe) {
+    int multiplyFactor = 4;
+    Date expTime = rememberMe
+        ? new Date(System.currentTimeMillis() + Long.parseLong(jwtExpTime) * multiplyFactor)
+        : new Date(System.currentTimeMillis() + Long.parseLong(jwtExpTime));
 
-    if (user instanceof CompanyEntity) {
-      extraClaims.put("role", AuthRoleEnum.COMPANY.name());
-    } else if (user instanceof BankEntity) {
-      extraClaims.put("role", AuthRoleEnum.BANK.name());
-    }
-
-    return genToken(extraClaims, user);
-  }
-
-  private String genToken(Map<String, Object> extraClaims, UserDetails user) {
     return Jwts.builder()
-        .claims(extraClaims) // old: setClaims
         .subject(user.getUsername()) // old: setSubject
+        .claims(extraClaims) // old: setClaims
         .issuedAt(new Date(System.currentTimeMillis())) // old: setIssuedAt
-        .expiration(new Date(System.currentTimeMillis() + Long.parseLong(jwtExpTime))) // old: setExpiration
+        .expiration(expTime) // old: setExpiration
         .signWith(genTokenSign()) // old: signWith(genTokenSign(), SignatureAlgorithm.HS256)
         .compact();
   }

@@ -1,6 +1,7 @@
 package com.brianuceda.sserafimflow.dtos;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 import com.brianuceda.sserafimflow.entities.BankEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
@@ -22,24 +23,28 @@ public class BankDTO {
   private String ruc;
   private String username;
   private String password;
-  private String image;
+  private String imageUrl;
   private CurrencyEnum currency;
   private BigDecimal balance;
   private BigDecimal nominalRate;
   private BigDecimal effectiveRate;
   private BigDecimal extraCommission;
+  private Timestamp creationDate;
   
-  public BankDTO(BankEntity bank) {
-    this.id = bank.getId();
+  public BankDTO(BankEntity bank, boolean includeId) {
+    if (includeId) {
+      this.id = bank.getId();
+    } 
     this.realName = bank.getRealName();
     this.ruc = bank.getRuc();
     this.username = bank.getUsername();
-    this.image = bank.getImage();
+    this.imageUrl = bank.getImageUrl();
     this.currency = bank.getCurrency();
     this.balance = bank.getBalance();
     this.nominalRate = bank.getNominalRate();
     this.effectiveRate = bank.getEffectiveRate();
     this.extraCommission = bank.getExtraCommission();
+    this.creationDate = bank.getCreationDate();
   }
 
   // Para mostrar en los documentos de la empresa comprados por el banco
