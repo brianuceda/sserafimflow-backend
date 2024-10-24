@@ -148,6 +148,7 @@ public class _LogController {
           "  color: " + textColor + ";" +
           "  font-size: " + fontSize + ";" +
           "  font-family: " + fontFamily + ";" +
+          "  overflow-x: hidden;" +
           "}" +
 
           // Scrollbar style
