@@ -53,7 +53,7 @@ public class WebSecurityConfig {
         .csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(request -> {
           CorsConfiguration configuration = new CorsConfiguration();
-
+          
           configuration.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGINS));
           configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
           configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
