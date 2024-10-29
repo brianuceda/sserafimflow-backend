@@ -118,7 +118,7 @@ public class _AuthBankController {
       throw new IllegalArgumentException("La moneda es obligatoria");
     }
 
-    if (!EnumSet.of(CurrencyEnum.PEN, CurrencyEnum.USD, CurrencyEnum.CAD, CurrencyEnum.EUR)
+    if (!EnumSet.of(CurrencyEnum.PEN, CurrencyEnum.USD)
         .contains(bankDTO.getCurrency())) {
       throw new IllegalArgumentException("La moneda no es válida");
     }

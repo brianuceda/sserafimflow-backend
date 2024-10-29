@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PurchasedDocumentDTO {
   private Long id;
-  
+
   private LocalDate purchaseDate;
   private LocalDateTime payDate;
 
@@ -34,6 +34,7 @@ public class PurchasedDocumentDTO {
   private BigDecimal rateValue;
   private StateEnum state;
 
+  private BankDTO bank;
   private CompanyDTO company;
 
   private DocumentDTO document;
@@ -52,17 +53,21 @@ public class PurchasedDocumentDTO {
     this.rateValue = purchase.getRateValue();
     this.state = purchase.getState();
 
+    this.bank = new BankDTO(
+        purchase.getBank().getId(),
+        purchase.getBank().getRealName(),
+        purchase.getBank().getRuc(),
+        purchase.getBank().getCurrency());
+
     this.company = new CompanyDTO(
-      purchase.getDocument().getCompany().getRealName(),
-      purchase.getDocument().getCompany().getRuc(),
-      purchase.getDocument().getCompany().getImageUrl()
-    );
+        purchase.getDocument().getCompany().getRealName(),
+        purchase.getDocument().getCompany().getRuc(),
+        purchase.getDocument().getCompany().getImageUrl());
 
     this.document = new DocumentDTO(
-      purchase.getDocument().getId(),
-      purchase.getDocument().getDocumentType(),
-      purchase.getDocument().getDueDate(),
-      purchase.getDocument().getClientName()
-    );
+        purchase.getDocument().getId(),
+        purchase.getDocument().getDocumentType(),
+        purchase.getDocument().getDueDate(),
+        purchase.getDocument().getClientName());
   }
 }

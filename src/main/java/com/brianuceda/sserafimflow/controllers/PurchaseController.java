@@ -22,7 +22,6 @@ import com.brianuceda.sserafimflow.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @RestController
 @RequestMapping("/api/v1/purchase")
 public class PurchaseController {

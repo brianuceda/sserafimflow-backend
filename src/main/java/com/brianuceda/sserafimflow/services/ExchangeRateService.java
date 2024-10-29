@@ -5,7 +5,6 @@ import java.util.List;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
@@ -23,12 +22,8 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 
-import java.time.LocalDateTime;
-
 @Service
 public class ExchangeRateService implements ExchangeRateImpl {
-  @Value("${IS_PRODUCTION}")
-  private boolean isProduction;
 
   private final ExchangeRateRepository exchangeRateRepository;
   private final SeleniumUtils seleniumUtils;
@@ -42,7 +37,7 @@ public class ExchangeRateService implements ExchangeRateImpl {
   @Transactional
   public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
     // Fecha actual (Prod: UTC / Dev: GMT-5)
-    LocalDate currentDate = this.isProduction ? LocalDateTime.now().minusHours(5).toLocalDate() : LocalDate.now();
+    LocalDate currentDate = LocalDate.now();
 
     // Buscar en la BD
     ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByDate(currentDate);
@@ -94,10 +89,10 @@ public class ExchangeRateService implements ExchangeRateImpl {
 
         if (currencyCell.equals("Dólar de N.A.")) {
           currency = CurrencyEnum.USD;
-        } else if (currencyCell.equals("Dólar Canadiense")) {
-          currency = CurrencyEnum.CAD;
-        } else if (currencyCell.equals("Euro")) {
-          currency = CurrencyEnum.EUR;
+        // } else if (currencyCell.equals("Dólar Canadiense")) {
+        //   currency = CurrencyEnum.CAD;
+        // } else if (currencyCell.equals("Euro")) {
+        //   currency = CurrencyEnum.EUR;
         } else {
           continue;
         }

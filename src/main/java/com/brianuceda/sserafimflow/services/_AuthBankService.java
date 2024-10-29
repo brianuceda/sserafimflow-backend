@@ -1,6 +1,7 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class _AuthBankService implements _AuthBankImpl {
         .password(passwordEncoder.encode(bankDTO.getPassword()))
         .imageUrl(bankDTO.getImageUrl() != null ? bankDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/bank.png")
         .currency(bankDTO.getCurrency())
-        .balance(BigDecimal.valueOf(0.0))
+        .balance(new BigDecimal(1000000))
         .role(AuthRoleEnum.BANK)
         .creationDate(Timestamp.from(Instant.now()))
         .nominalRate(bankDTO.getNominalRate())
