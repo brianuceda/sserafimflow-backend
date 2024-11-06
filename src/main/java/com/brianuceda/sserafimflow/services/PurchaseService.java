@@ -18,13 +18,13 @@ import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.entities.DocumentEntity;
 import com.brianuceda.sserafimflow.entities.PurchaseEntity;
 import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
-import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.StateEnum;
 import com.brianuceda.sserafimflow.implementations.PurchaseImpl;
 import com.brianuceda.sserafimflow.respositories.BankRepository;
 import com.brianuceda.sserafimflow.respositories.CompanyRepository;
 import com.brianuceda.sserafimflow.respositories.DocumentRepository;
 import com.brianuceda.sserafimflow.respositories.PurchaseRepository;
+import com.brianuceda.sserafimflow.utils.PurchaseUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.java.Log;
@@ -36,19 +36,19 @@ public class PurchaseService implements PurchaseImpl {
   private final CompanyRepository companyRepository;
   private final DocumentRepository documentRepository;
   private final PurchaseRepository purchaseRepository;
-  private final ExchangeRateService exchangeRateService;
+  private final PurchaseUtils purchaseUtils;
 
   public PurchaseService(BankRepository bankRepository,
       CompanyRepository companyRepository,
       DocumentRepository documentRepository,
       PurchaseRepository purchaseRepository,
-      ExchangeRateService exchangeRateService) {
+      PurchaseUtils purchaseUtils) {
 
     this.bankRepository = bankRepository;
     this.companyRepository = companyRepository;
     this.documentRepository = documentRepository;
     this.purchaseRepository = purchaseRepository;
-    this.exchangeRateService = exchangeRateService;
+    this.purchaseUtils = purchaseUtils;
   }
 
   // Company
@@ -71,7 +71,9 @@ public class PurchaseService implements PurchaseImpl {
     // Conversión de moneda si es necesario
     BigDecimal nominalValue = document.getAmount();
     if (document.getCurrency() != bank.getCurrency()) {
-      nominalValue = convertCurrency(nominalValue, document.getCurrency(), bank.getCurrency());
+      ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
+      nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getCurrency(),
+          exchangeRateDTO);
     }
 
     // Si no se especifica la fecha de compra, se toma la fecha actual
@@ -101,7 +103,7 @@ public class PurchaseService implements PurchaseImpl {
     }
 
     BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP);
-    BigDecimal receivedValue = calculateReceivedValue(document.getAmount(), discountRate);
+    BigDecimal receivedValue = calculateReceivedValue(nominalValue, discountRate);
 
     // Marca en proceso de venta el documento
     document.setState(StateEnum.PENDING);
@@ -129,30 +131,21 @@ public class PurchaseService implements PurchaseImpl {
     return new ResponseDTO("Venta registrada con éxito");
   }
 
-  private BigDecimal convertCurrency(BigDecimal amount, CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {
-    ExchangeRateDTO exchangeRateDTO = this.exchangeRateService.getTodayExchangeRate();
-
-    if (fromCurrency == CurrencyEnum.USD && toCurrency == CurrencyEnum.PEN) {
-      // Convertir de USD a PEN usando la tasa de venta
-      return amount.multiply(exchangeRateDTO.getCurrencyRates().get(0).getSalePrice());
-    } else if (fromCurrency == CurrencyEnum.PEN && toCurrency == CurrencyEnum.USD) {
-      // Convertir de PEN a USD usando la tasa de compra
-      return amount.divide(exchangeRateDTO.getCurrencyRates().get(0).getPurchasePrice(), RoundingMode.HALF_UP);
-    }
-
-    return amount;
-  }
-
-  private BigDecimal calculateTep(BigDecimal nominalRate, Integer days) {
+  private BigDecimal calculateTep(BigDecimal nominalRate, Integer n) {
+    // TEP = ((1 + TN/m)^n) - 1
     double m = 360;
-    return BigDecimal.valueOf(Math.pow(1 + nominalRate.doubleValue() / m, days / 360.0 * m) - 1);
+    return BigDecimal.valueOf(Math.pow(1 + nominalRate.doubleValue() / m, n) - 1);
   }
 
-  private BigDecimal calculateDiscountRate(BigDecimal tep) {
-    return tep.divide(BigDecimal.ONE.add(tep), RoundingMode.HALF_UP);
+  public BigDecimal calculateDiscountRate(BigDecimal tep) {
+    // d = TEP / (1 + TEP)
+    BigDecimal denominator = BigDecimal.ONE.add(tep);
+    BigDecimal discountRate = tep.divide(denominator, RoundingMode.HALF_UP);
+    return discountRate;
   }
 
   private BigDecimal calculateReceivedValue(BigDecimal nominalValue, BigDecimal discountRate) {
+    // Valor recibido = Valor nominal * (1 - tasa de descuento)
     return nominalValue.multiply(BigDecimal.ONE.subtract(discountRate));
   }
 
