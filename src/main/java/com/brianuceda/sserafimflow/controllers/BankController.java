@@ -11,15 +11,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.brianuceda.sserafimflow.dtos.BankDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.implementations._AuthBankImpl;
 import com.brianuceda.sserafimflow.implementations.BankImpl;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.java.Log;
 
 @RestController
 @RequestMapping("/api/v1/bank")
+@Log
 public class BankController {
   private final JwtUtils jwtUtils;
   private final _AuthBankImpl authBankImpl;
@@ -53,7 +56,11 @@ public class BankController {
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);
 
-      return new ResponseEntity<>(bankImpl.getProfile(username), HttpStatus.OK);
+      BankDTO bank = bankImpl.getProfile(username);
+
+      log.info("Bank profile: " + bank.toString());
+
+      return new ResponseEntity<>(bank, HttpStatus.OK);
     } catch (IllegalArgumentException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }

@@ -1,6 +1,7 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import com.brianuceda.sserafimflow.dtos.BankDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.entities.BankEntity;
 import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.implementations.AwsS3Impl;
 import com.brianuceda.sserafimflow.implementations._AuthBankImpl;
 import com.brianuceda.sserafimflow.respositories.BankRepository;
@@ -63,10 +65,12 @@ public class _AuthBankService implements _AuthBankImpl {
         .username(bankDTO.getUsername())
         .password(passwordEncoder.encode(bankDTO.getPassword()))
         .imageUrl(bankDTO.getImageUrl() != null ? bankDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/bank.png")
-        .currency(bankDTO.getCurrency())
+        .mainCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
+        .previewDataCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
         .balance(new BigDecimal(1000000))
         .role(AuthRoleEnum.BANK)
-        .creationDate(Timestamp.from(Instant.now()))
+        .creationDate(bankDTO.getCreationDate() != null ? bankDTO.getCreationDate() : new Date(System.currentTimeMillis()))
+        .accountCreationDate(Timestamp.from(Instant.now()))
         .nominalRate(bankDTO.getNominalRate())
         .effectiveRate(bankDTO.getEffectiveRate())
         .extraCommission(bankDTO.getExtraCommission())

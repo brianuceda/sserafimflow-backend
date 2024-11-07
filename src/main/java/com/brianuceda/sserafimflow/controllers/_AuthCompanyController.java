@@ -7,10 +7,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.implementations._AuthCompanyImpl;
 import com.brianuceda.sserafimflow.utils.DataUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
+
+import java.util.EnumSet;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -101,6 +104,15 @@ public class _AuthCompanyController {
 
     if (companyDTO.getRuc().length() > 11) {
       throw new IllegalArgumentException("El RUC es demasiado largo");
+    }
+
+    if (companyDTO.getMainCurrency() == null) {
+      throw new IllegalArgumentException("La moneda es obligatoria");
+    }
+
+    EnumSet<CurrencyEnum> currencies = EnumSet.of(CurrencyEnum.PEN, CurrencyEnum.USD);
+    if (!currencies.contains(companyDTO.getMainCurrency())) {
+      throw new IllegalArgumentException("La moneda no es válida");
     }
   }
 

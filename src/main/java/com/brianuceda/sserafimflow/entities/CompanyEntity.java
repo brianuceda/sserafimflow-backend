@@ -1,7 +1,7 @@
 package com.brianuceda.sserafimflow.entities;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -58,7 +58,10 @@ public class CompanyEntity implements UserDetails {
   private AuthRoleEnum role;
 
   @Column(nullable = false)
-  private Timestamp creationDate;
+  private Date creationDate;
+
+  @Column(nullable = false)
+  private Timestamp accountCreationDate;
 
   @OneToMany(mappedBy = "company")
   private List<DocumentEntity> documents;

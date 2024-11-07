@@ -78,9 +78,9 @@ public class PurchaseService implements PurchaseImpl {
 
     // Conversión de moneda si es necesario
     BigDecimal nominalValue = document.getAmount();
-    if (document.getCurrency() != bank.getCurrency()) {
+    if (document.getCurrency() != bank.getMainCurrency()) {
       ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
-      nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getCurrency(),
+      nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getMainCurrency(),
           exchangeRateDTO);
     }
 
@@ -119,7 +119,7 @@ public class PurchaseService implements PurchaseImpl {
     // Crear la compra
     PurchaseEntity purchase = PurchaseEntity.builder()
         .purchaseDate(purchaseDate.toLocalDate())
-        .currency(bank.getCurrency())
+        .currency(bank.getMainCurrency())
         .nominalValue(nominalValue)
         .discountRate(discountRate)
         .receivedValue(receivedValue)

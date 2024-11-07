@@ -1,7 +1,7 @@
 package com.brianuceda.sserafimflow.dtos;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.*;
 
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
@@ -24,7 +24,8 @@ public class CompanyDTO {
   private CurrencyEnum mainCurrency;
   private CurrencyEnum previewDataCurrency;
   private BigDecimal balance;
-  private Timestamp creationDate;
+  private Date creationDate;
+  private Timestamp accountCreationDate;
 
   public CompanyDTO(CompanyEntity company) {
     this.realName = company.getRealName();
@@ -35,6 +36,7 @@ public class CompanyDTO {
     this.previewDataCurrency = company.getPreviewDataCurrency();
     this.balance = company.getBalance();
     this.creationDate = company.getCreationDate();
+    this.accountCreationDate = company.getAccountCreationDate();
   }
 
   // Para mostrar en la compra

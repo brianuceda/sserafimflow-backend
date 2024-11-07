@@ -1,7 +1,7 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,10 +65,11 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
         .password(passwordEncoder.encode(companyDTO.getPassword()))
         .imageUrl(companyDTO.getImageUrl() != null ? companyDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/company.png")
         .mainCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
-        .previewDataCurrency(companyDTO.getPreviewDataCurrency() != null ? companyDTO.getPreviewDataCurrency() : CurrencyEnum.PEN)
+        .previewDataCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
         .balance(BigDecimal.valueOf(0.0))
         .role(AuthRoleEnum.COMPANY)
-        .creationDate(Timestamp.from(Instant.now()))
+        .creationDate(companyDTO.getCreationDate() != null ? companyDTO.getCreationDate() : new Date(System.currentTimeMillis()))
+        .accountCreationDate(Timestamp.from(Instant.now()))
         .build();
 
     companyRepository.save(company);

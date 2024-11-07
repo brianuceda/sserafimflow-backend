@@ -1,6 +1,7 @@
 package com.brianuceda.sserafimflow.entities;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -41,8 +42,13 @@ public class BankEntity implements UserDetails {
   @Column(nullable = true)
   private String imageUrl;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private CurrencyEnum currency;
+  private CurrencyEnum mainCurrency;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private CurrencyEnum previewDataCurrency;
 
   @Column(precision = 16, scale = 4, nullable = false)
   private BigDecimal balance;
@@ -52,7 +58,10 @@ public class BankEntity implements UserDetails {
   private AuthRoleEnum role;
 
   @Column(nullable = false)
-  private Timestamp creationDate;
+  private Date creationDate;
+
+  @Column(nullable = false)
+  private Timestamp accountCreationDate;
 
   @Column(precision = 6, scale = 4, nullable = false)
   @Positive
