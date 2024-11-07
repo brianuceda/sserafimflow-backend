@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.brianuceda.sserafimflow.dtos.CompanyDashboard;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.dtos.PurchasedDocumentDTO;
 import com.brianuceda.sserafimflow.dtos.RegisterPurchaseDTO;
@@ -18,6 +19,7 @@ import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.entities.DocumentEntity;
 import com.brianuceda.sserafimflow.entities.PurchaseEntity;
 import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
+import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.StateEnum;
 import com.brianuceda.sserafimflow.implementations.PurchaseImpl;
 import com.brianuceda.sserafimflow.respositories.BankRepository;
@@ -36,18 +38,24 @@ public class PurchaseService implements PurchaseImpl {
   private final CompanyRepository companyRepository;
   private final DocumentRepository documentRepository;
   private final PurchaseRepository purchaseRepository;
+  private final CompanyService companyService;
+  private final CompanyUpdateService companyUpdateService;
   private final PurchaseUtils purchaseUtils;
 
   public PurchaseService(BankRepository bankRepository,
       CompanyRepository companyRepository,
       DocumentRepository documentRepository,
       PurchaseRepository purchaseRepository,
+      CompanyService companyService,
+      CompanyUpdateService companyUpdateService,
       PurchaseUtils purchaseUtils) {
 
     this.bankRepository = bankRepository;
     this.companyRepository = companyRepository;
     this.documentRepository = documentRepository;
     this.purchaseRepository = purchaseRepository;
+    this.companyService = companyService;
+    this.companyUpdateService = companyUpdateService;
     this.purchaseUtils = purchaseUtils;
   }
 
@@ -223,7 +231,6 @@ public class PurchaseService implements PurchaseImpl {
   @Override
   @Transactional
   public ResponseDTO payDocument(String username, Long purchaseId) {
-
     BankEntity bank = bankRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
@@ -235,20 +242,32 @@ public class PurchaseService implements PurchaseImpl {
     }
 
     log.info("- Realizando pago de compra con ID: " + purchaseId + " - Por el banco: " + bank.getRealName());
-    log.info("- Monto a pagar: " + purchase.getReceivedValue());
+    log.info("- Monto pagado al banco (VR que recibió la empresa): " + purchase.getReceivedValue());
+    log.info("- Valor nominal del documento (Total recuperado del cliente): " + purchase.getNominalValue());
     log.info("- Fecha de pago: " + LocalDateTime.now());
 
-    // Cambiar cantidades de dinero
-    BigDecimal amount = purchase.getReceivedValue();
-
-    // if (bank.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-    // throw new IllegalArgumentException("Fondos insuficientes");
-    // }
-
+    // Ganancia del banco
+    BigDecimal nominalValue = purchase.getNominalValue(); // Total recuperado del cliente
+    BigDecimal receivedValue = purchase.getReceivedValue(); // Valor pagado a la empresa
+    CurrencyEnum purchaseCurrency = purchase.getCurrency();
     CompanyEntity company = purchase.getDocument().getCompany();
+    CurrencyEnum mainCurrency = company.getMainCurrency();
 
-    bank.setBalance(bank.getBalance().subtract(amount));
-    company.setBalance(company.getBalance().add(amount));
+    // Conversión de moneda si es necesario
+    BigDecimal convertedReceivedValue = receivedValue;
+    if (!purchaseCurrency.equals(mainCurrency)) {
+      ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
+      convertedReceivedValue = this.purchaseUtils.convertCurrency(receivedValue, purchaseCurrency, mainCurrency,
+          exchangeRateDTO);
+    }
+
+    // Diferencia entre lo recibido del cliente y lo pagado a la empresa
+    BigDecimal bankProfit = nominalValue.subtract(receivedValue);
+    log.info("- Ganancia del banco en esta operación: " + bankProfit + " " + purchaseCurrency);
+
+    // Actualización de balances
+    bank.setBalance(bank.getBalance().add(bankProfit));
+    company.setBalance(company.getBalance().add(convertedReceivedValue));
 
     // Cambiar estados
     purchase.getDocument().setState(StateEnum.PAID);
@@ -261,14 +280,14 @@ public class PurchaseService implements PurchaseImpl {
     documentRepository.save(purchase.getDocument());
     purchaseRepository.save(purchase);
 
-    return new ResponseDTO("Pago realizado con éxito");
+    // Actualización del WebSocket con los datos actualizados del dashboard
+    CompanyDashboard updatedDashboard = companyService.getDashboard(company.getUsername(),
+        company.getPreviewDataCurrency());
+    this.companyUpdateService.sendDashboardUpdate(updatedDashboard);
+
+    return new ResponseDTO("Pago realizado con éxito!");
   }
 
-  // Como banco, decido cuando pagar las compras
-  // Si la fecha de expiracion del documento (dueDate) está a menos de 12 horas o
-  // ya pasó, la compra se realiza automáticamente
-  // Si el banco no tiene dinero suficiente, la compra se realiza de todos modos y
-  // el banco queda en negativo
   @Override
   public void tryToBuyByPurchaseDate() {
     List<PurchaseEntity> purchases = purchaseRepository.findAllByState(StateEnum.PENDING);

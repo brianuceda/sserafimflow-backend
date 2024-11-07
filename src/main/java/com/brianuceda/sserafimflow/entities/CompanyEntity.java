@@ -41,8 +41,13 @@ public class CompanyEntity implements UserDetails {
   @Column(nullable = true)
   private String imageUrl;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private CurrencyEnum currency;
+  private CurrencyEnum mainCurrency;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private CurrencyEnum previewDataCurrency;
 
   @Column(precision = 16, scale = 4, nullable = false)
   @Positive

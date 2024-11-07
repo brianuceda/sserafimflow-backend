@@ -24,8 +24,6 @@ public interface CompanyRepository extends JpaRepository<CompanyEntity, Long> {
           d.document_type AS documentType,
           p.rate_type AS rateType,
           p.currency AS currency,
-          d.portfolio_id AS portfolio,
-          p.state AS state,
           EXTRACT(MONTH FROM p.purchase_date) AS month
       FROM
           purchase p
@@ -33,7 +31,7 @@ public interface CompanyRepository extends JpaRepository<CompanyEntity, Long> {
           document d ON p.document_id = d.id
       WHERE
           d.company_id = :companyId
-          AND p.state = 'PAID' OR p.state = 'PENDING'
+          AND p.state = 'PAID'
       ORDER BY
           p.purchase_date
       """, nativeQuery = true)

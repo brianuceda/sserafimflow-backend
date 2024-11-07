@@ -21,7 +21,8 @@ public class CompanyDTO {
   private String username;
   private String password;
   private String imageUrl;
-  private CurrencyEnum currency;
+  private CurrencyEnum mainCurrency;
+  private CurrencyEnum previewDataCurrency;
   private BigDecimal balance;
   private Timestamp creationDate;
 
@@ -30,7 +31,8 @@ public class CompanyDTO {
     this.ruc = company.getRuc();
     this.username = company.getUsername();
     this.imageUrl = company.getImageUrl();
-    this.currency = company.getCurrency();
+    this.mainCurrency = company.getMainCurrency();
+    this.previewDataCurrency = company.getPreviewDataCurrency();
     this.balance = company.getBalance();
     this.creationDate = company.getCreationDate();
   }

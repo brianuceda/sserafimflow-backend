@@ -1,9 +1,6 @@
 package com.brianuceda.sserafimflow.controllers;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.implementations.CompanyImpl;
@@ -24,6 +22,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/company")
@@ -70,7 +70,7 @@ public class CompanyController {
   @PreAuthorize("hasRole('COMPANY')")
   @GetMapping("/dashboard")
   public ResponseEntity<?> getDashboard(HttpServletRequest request,
-      @RequestParam(defaultValue = "PEN") CurrencyEnum targetCurrency) {
+      @RequestParam(required = false) CurrencyEnum targetCurrency) {
 
     try {
       String token = this.jwtUtils.getTokenFromRequest(request);
@@ -82,29 +82,15 @@ public class CompanyController {
     }
   }
 
-  private BigDecimal calculateTep() {
-    LocalDate purchaseDate = LocalDate.now();
-    LocalDate dueDate = LocalDate.now().plusDays(61);
-    double m = 360;
-    Integer n = (int) ChronoUnit.DAYS.between(purchaseDate, dueDate);
-    BigDecimal nominalRate = BigDecimal.valueOf(0.1);
+  @PutMapping("/update-profile")
+  public ResponseEntity<ResponseDTO> updateCompanyProfile(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
+    try {
+      String token = jwtUtils.getTokenFromRequest(request);
+      String username = jwtUtils.getUsernameFromToken(token);
 
-    return BigDecimal.valueOf(Math.pow(1 + nominalRate.doubleValue() / m, n) - 1);
-  }
-
-  public BigDecimal calculateDiscountRate() {
-    BigDecimal tep = calculateTep();
-
-    // d = TEP / (1 + TEP)
-    BigDecimal denominator = BigDecimal.ONE.add(tep);
-    BigDecimal discountRate = tep.divide(denominator, RoundingMode.HALF_UP);
-    return discountRate;
-  }
-
-  private BigDecimal calculateReceivedValue() {
-    BigDecimal nominalValue = BigDecimal.valueOf(28502.1938);
-    BigDecimal discountRate = calculateDiscountRate();
-    BigDecimal val = nominalValue.multiply(BigDecimal.ONE.subtract(discountRate));
-    return val;
+      return new ResponseEntity<>(this.companyImpl.updateCompanyProfile(username, companyDTO), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
   }
 }

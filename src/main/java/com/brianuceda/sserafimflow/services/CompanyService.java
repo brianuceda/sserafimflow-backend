@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.CompanyDashboard;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
+import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.RateTypeEnum;
@@ -40,14 +41,19 @@ public class CompanyService implements CompanyImpl {
 
     CompanyDashboard dashboard = new CompanyDashboard();
 
+    if (targetCurrency == null) {
+      targetCurrency = company.getPreviewDataCurrency();
+    }
+
     // Tasa de cambio del día
     dashboard.setExchangeRate(this.purchaseUtils.getTodayExchangeRate());
+    dashboard.setMainCurrency(targetCurrency);
 
     // Datos generales
-    this.accumulateGeneralData(dashboard, company.getId(), targetCurrency, dashboard.getExchangeRate());
+    this.accumulateGeneralData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getExchangeRate());
 
     // Datos mensuales
-    this.accumulateMonthlyData(dashboard, company.getId(), targetCurrency, dashboard.getExchangeRate());
+    this.accumulateMonthlyData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getExchangeRate());
 
     return dashboard;
   }
@@ -74,8 +80,6 @@ public class CompanyService implements CompanyImpl {
       BigDecimal discountedValue = (BigDecimal) purchase.get("discountedValue");
       CurrencyEnum fromCurrency = CurrencyEnum.valueOf(purchase.get("currency", String.class));
       RateTypeEnum rateType = RateTypeEnum.valueOf(purchase.get("rateType", String.class));
-      Long portfolioId = purchase.get("portfolio", Long.class);
-      String documentState = purchase.get("state", String.class);
 
       // Convertir cada valor a la moneda objetivo
       nominalValue = purchaseUtils.convertCurrency(nominalValue, fromCurrency, targetCurrency, exchangeRateDTO);
@@ -90,11 +94,6 @@ public class CompanyService implements CompanyImpl {
       // Contar las divisas y tipos de tasa
       currencyCount.put(fromCurrency.name(), currencyCount.getOrDefault(fromCurrency.name(), 0) + 1);
       rateTypeCount.put(rateType.name(), rateTypeCount.getOrDefault(rateType.name(), 0) + 1);
-
-      // Verificar si el portafolio está pendiente de pago
-      if (portfolioId != null && "PENDING".equals(documentState)) {
-        pendingPortfolios.add(portfolioId);
-      }
     }
 
     dashboard.setTotalNominalValueIssued(totalNominalValueIssued);
@@ -160,4 +159,77 @@ public class CompanyService implements CompanyImpl {
 
     return new CompanyDTO(company);
   }
+
+  @Override
+  public ResponseDTO updateCompanyProfile(String username, CompanyDTO companyDTO) {
+    CompanyEntity company = companyRepository.findByUsername(username)
+        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+
+    List<String> fieldsUpdated = new ArrayList<>();
+
+    if (companyDTO.getRealName() != null && !companyDTO.getRealName().isEmpty() &&
+        !companyDTO.getRealName().equals(company.getRealName())) {
+      company.setRealName(companyDTO.getRealName());
+      fieldsUpdated.add("realName");
+    }
+
+    if (companyDTO.getRuc() != null && !companyDTO.getRuc().isEmpty() &&
+        !companyDTO.getRuc().equals(company.getRuc())) {
+      company.setRuc(companyDTO.getRuc());
+      fieldsUpdated.add("ruc");
+    }
+
+    if (companyDTO.getUsername() != null && !companyDTO.getUsername().isEmpty() &&
+        !companyDTO.getUsername().equals(company.getUsername())) {
+      company.setUsername(companyDTO.getUsername());
+      fieldsUpdated.add("username");
+    }
+
+    // Realizar la conversión de moneda si es necesario
+    if (companyDTO.getMainCurrency() != null &&
+        !companyDTO.getMainCurrency().equals(company.getMainCurrency())) {
+
+      CurrencyEnum oldCurrency = company.getMainCurrency();
+      CurrencyEnum newCurrency = companyDTO.getMainCurrency();
+      BigDecimal currentBalance = company.getBalance();
+
+      ExchangeRateDTO exchangeRateDTO = purchaseUtils.getTodayExchangeRate();
+
+      BigDecimal convertedBalance = purchaseUtils.convertCurrency(currentBalance, oldCurrency, newCurrency,
+          exchangeRateDTO);
+
+      company.setBalance(convertedBalance);
+      company.setMainCurrency(newCurrency);
+
+      fieldsUpdated.add("mainCurrency");
+    }
+
+    if (companyDTO.getPreviewDataCurrency() != null &&
+        !companyDTO.getPreviewDataCurrency().equals(company.getPreviewDataCurrency())) {
+      company.setPreviewDataCurrency(companyDTO.getPreviewDataCurrency());
+      fieldsUpdated.add("previewDataCurrency");
+    }
+
+    companyRepository.save(company);
+
+    // Mensaje de respuesta
+    String message;
+    if (fieldsUpdated.isEmpty()) {
+      message = "Nada que actualizar!";
+    } else if (fieldsUpdated.size() == 1) {
+      switch (fieldsUpdated.get(0)) {
+        case "realName" -> message = "Nombre actualizado correctamente!";
+        case "ruc" -> message = "RUC actualizado correctamente!";
+        case "username" -> message = "Email actualizado correctamente!";
+        case "mainCurrency" -> message = "Moneda principal y balance actualizados!";
+        case "previewDataCurrency" -> message = "Moneda de previsualización actualizada!";
+        default -> message = "Campo actualizado correctamente!";
+      }
+    } else {
+      message = "Datos actualizados correctamente!";
+    }
+
+    return new ResponseDTO(message);
+  }
+
 }
