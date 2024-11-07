@@ -114,12 +114,12 @@ public class _AuthBankController {
       throw new IllegalArgumentException("El RUC es demasiado largo");
     }
 
-    if (bankDTO.getCurrency() == null) {
+    if (bankDTO.getMainCurrency() == null) {
       throw new IllegalArgumentException("La moneda es obligatoria");
     }
 
-    if (!EnumSet.of(CurrencyEnum.PEN, CurrencyEnum.USD)
-        .contains(bankDTO.getCurrency())) {
+    EnumSet<CurrencyEnum> currencies = EnumSet.of(CurrencyEnum.PEN, CurrencyEnum.USD);
+    if (!currencies.contains(bankDTO.getMainCurrency())) {
       throw new IllegalArgumentException("La moneda no es válida");
     }
 

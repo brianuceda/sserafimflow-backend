@@ -36,10 +36,8 @@ public class ExchangeRateService implements ExchangeRateImpl {
   @Override
   @Transactional
   public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
-    // Fecha actual (Prod: UTC / Dev: GMT-5)
     LocalDate currentDate = LocalDate.now();
 
-    // Buscar en la BD
     ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByDate(currentDate);
     ExchangeRateDTO exchangeRateDTO = null;
 
@@ -59,6 +57,7 @@ public class ExchangeRateService implements ExchangeRateImpl {
     } else {
       // Si existe en la BD, convertir a DTO para retornar
       exchangeRateDTO = new ExchangeRateDTO(exchangeRateEntity);
+      exchangeRateDTO.assingCurrencyNames();
     }
 
     return exchangeRateDTO;
@@ -83,16 +82,16 @@ public class ExchangeRateService implements ExchangeRateImpl {
 
       for (WebElement row : rows) {
         List<WebElement> cells = row.findElements(By.tagName("td"));
-
         String currencyCell = cells.get(0).getText().trim();
+
         CurrencyEnum currency = null;
 
         if (currencyCell.equals("Dólar de N.A.")) {
           currency = CurrencyEnum.USD;
-        // } else if (currencyCell.equals("Dólar Canadiense")) {
-        //   currency = CurrencyEnum.CAD;
-        // } else if (currencyCell.equals("Euro")) {
-        //   currency = CurrencyEnum.EUR;
+        } else if (currencyCell.equals("Dólar Canadiense")) {
+          currency = CurrencyEnum.CAD;
+        } else if (currencyCell.equals("Euro")) {
+          currency = CurrencyEnum.EUR;
         } else {
           continue;
         }
@@ -111,10 +110,12 @@ public class ExchangeRateService implements ExchangeRateImpl {
 
         exchangeRateDTO.getCurrencyRates().add(currencyRateDTO);
       }
+      
+      // Asignar nombres rales a las monedas
+      exchangeRateDTO.assingCurrencyNames();
 
       return exchangeRateDTO;
     } catch (Exception ex) {
-      // throw new ConnectionFailed("No se pudo obtener la tasa de cambio de la SBS");
       throw new ConnectionFailed(ex.getMessage());
     } finally {
       seleniumUtils.closeBrowser(driver);

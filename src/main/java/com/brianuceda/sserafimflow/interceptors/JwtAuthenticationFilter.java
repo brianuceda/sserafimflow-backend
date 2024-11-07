@@ -1,4 +1,4 @@
-package com.brianuceda.sserafimflow.filters;
+package com.brianuceda.sserafimflow.interceptors;
 
 import java.io.IOException;
 

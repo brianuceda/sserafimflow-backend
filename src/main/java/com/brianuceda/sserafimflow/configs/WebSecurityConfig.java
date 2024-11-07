@@ -14,9 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import com.brianuceda.sserafimflow.filters.JwtAccessDeniedHandler;
-import com.brianuceda.sserafimflow.filters.JwtAuthenticationEntryPoint;
-import com.brianuceda.sserafimflow.filters.JwtAuthenticationFilter;
+import com.brianuceda.sserafimflow.interceptors.JwtAccessDeniedHandler;
+import com.brianuceda.sserafimflow.interceptors.JwtAuthenticationEntryPoint;
+import com.brianuceda.sserafimflow.interceptors.JwtAuthenticationFilter;
 
 import lombok.extern.java.Log;
 
@@ -65,6 +65,7 @@ public class WebSecurityConfig {
         .authorizeHttpRequests(authRequest -> {
           authRequest.requestMatchers("/api/v1/auth/**").permitAll();
           authRequest.requestMatchers("/api/v1/logs/**").permitAll();
+          authRequest.requestMatchers("/ws/**").permitAll();
           authRequest.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll();
           
           authRequest.anyRequest().authenticated();

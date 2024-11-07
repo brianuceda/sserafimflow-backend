@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CurrencyRateDTO {
+  private String currencyName;
   private CurrencyEnum currency;
   private BigDecimal purchasePrice;
   private BigDecimal salePrice;
@@ -23,5 +24,11 @@ public class CurrencyRateDTO {
     this.currency = currencyRateEntity.getCurrency();
     this.purchasePrice = currencyRateEntity.getPurchasePrice();
     this.salePrice = currencyRateEntity.getSalePrice();
+  }
+
+  public CurrencyRateDTO(CurrencyEnum currency, BigDecimal purchasePrice, BigDecimal salePrice) {
+    this.currency = currency;
+    this.purchasePrice = purchasePrice;
+    this.salePrice = salePrice;
   }
 }

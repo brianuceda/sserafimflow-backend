@@ -1,6 +1,7 @@
 package com.brianuceda.sserafimflow.dtos;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 
 import com.brianuceda.sserafimflow.entities.BankEntity;
@@ -24,12 +25,14 @@ public class BankDTO {
   private String username;
   private String password;
   private String imageUrl;
-  private CurrencyEnum currency;
+  private CurrencyEnum mainCurrency;
+  private CurrencyEnum previewDataCurrency;
   private BigDecimal balance;
   private BigDecimal nominalRate;
   private BigDecimal effectiveRate;
   private BigDecimal extraCommission;
-  private Timestamp creationDate;
+  private Date creationDate;
+  private Timestamp accountCreationDate;
   
   public BankDTO(BankEntity bank, boolean includeId) {
     if (includeId) {
@@ -39,19 +42,21 @@ public class BankDTO {
     this.ruc = bank.getRuc();
     this.username = bank.getUsername();
     this.imageUrl = bank.getImageUrl();
-    this.currency = bank.getCurrency();
+    this.mainCurrency = bank.getMainCurrency();
+    this.previewDataCurrency = bank.getPreviewDataCurrency();
     this.balance = bank.getBalance();
     this.nominalRate = bank.getNominalRate();
     this.effectiveRate = bank.getEffectiveRate();
     this.extraCommission = bank.getExtraCommission();
     this.creationDate = bank.getCreationDate();
+    this.accountCreationDate = bank.getAccountCreationDate();
   }
 
   // Para mostrar en los documentos de la empresa comprados por el banco
-  public BankDTO(Long id, String realName, String ruc, CurrencyEnum currency) {
+  public BankDTO(Long id, String realName, String ruc, CurrencyEnum mainCurrency) {
     this.id = id;
     this.realName = realName;
     this.ruc = ruc;
-    this.currency = currency;
+    this.mainCurrency = mainCurrency;
   }
 }

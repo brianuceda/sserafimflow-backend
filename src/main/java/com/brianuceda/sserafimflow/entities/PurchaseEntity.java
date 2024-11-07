@@ -36,7 +36,7 @@ public class PurchaseEntity {
   @Column(precision = 16, scale = 4, nullable = false)
   @Positive
   private BigDecimal nominalValue; // Valor nominal
-
+  
   @Column(precision = 5, scale = 4, nullable = false)
   @Positive
   private BigDecimal discountRate; // Tasa descontada

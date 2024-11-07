@@ -57,7 +57,7 @@ public class PurchasedDocumentDTO {
         purchase.getBank().getId(),
         purchase.getBank().getRealName(),
         purchase.getBank().getRuc(),
-        purchase.getBank().getCurrency());
+        purchase.getBank().getMainCurrency());
 
     this.company = new CompanyDTO(
         purchase.getDocument().getCompany().getRealName(),

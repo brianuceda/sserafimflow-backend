@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.brianuceda.sserafimflow.dtos.CompanyDashboard;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.dtos.PurchasedDocumentDTO;
 import com.brianuceda.sserafimflow.dtos.RegisterPurchaseDTO;
@@ -25,6 +26,7 @@ import com.brianuceda.sserafimflow.respositories.BankRepository;
 import com.brianuceda.sserafimflow.respositories.CompanyRepository;
 import com.brianuceda.sserafimflow.respositories.DocumentRepository;
 import com.brianuceda.sserafimflow.respositories.PurchaseRepository;
+import com.brianuceda.sserafimflow.utils.PurchaseUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.java.Log;
@@ -36,19 +38,25 @@ public class PurchaseService implements PurchaseImpl {
   private final CompanyRepository companyRepository;
   private final DocumentRepository documentRepository;
   private final PurchaseRepository purchaseRepository;
-  private final ExchangeRateService exchangeRateService;
+  private final CompanyService companyService;
+  private final CompanyUpdateService companyUpdateService;
+  private final PurchaseUtils purchaseUtils;
 
   public PurchaseService(BankRepository bankRepository,
       CompanyRepository companyRepository,
       DocumentRepository documentRepository,
       PurchaseRepository purchaseRepository,
-      ExchangeRateService exchangeRateService) {
+      CompanyService companyService,
+      CompanyUpdateService companyUpdateService,
+      PurchaseUtils purchaseUtils) {
 
     this.bankRepository = bankRepository;
     this.companyRepository = companyRepository;
     this.documentRepository = documentRepository;
     this.purchaseRepository = purchaseRepository;
-    this.exchangeRateService = exchangeRateService;
+    this.companyService = companyService;
+    this.companyUpdateService = companyUpdateService;
+    this.purchaseUtils = purchaseUtils;
   }
 
   // Company
@@ -70,8 +78,10 @@ public class PurchaseService implements PurchaseImpl {
 
     // Conversión de moneda si es necesario
     BigDecimal nominalValue = document.getAmount();
-    if (document.getCurrency() != bank.getCurrency()) {
-      nominalValue = convertCurrency(nominalValue, document.getCurrency(), bank.getCurrency());
+    if (document.getCurrency() != bank.getMainCurrency()) {
+      ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
+      nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getMainCurrency(),
+          exchangeRateDTO);
     }
 
     // Si no se especifica la fecha de compra, se toma la fecha actual
@@ -101,7 +111,7 @@ public class PurchaseService implements PurchaseImpl {
     }
 
     BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP);
-    BigDecimal receivedValue = calculateReceivedValue(document.getAmount(), discountRate);
+    BigDecimal receivedValue = calculateReceivedValue(nominalValue, discountRate);
 
     // Marca en proceso de venta el documento
     document.setState(StateEnum.PENDING);
@@ -109,7 +119,7 @@ public class PurchaseService implements PurchaseImpl {
     // Crear la compra
     PurchaseEntity purchase = PurchaseEntity.builder()
         .purchaseDate(purchaseDate.toLocalDate())
-        .currency(bank.getCurrency())
+        .currency(bank.getMainCurrency())
         .nominalValue(nominalValue)
         .discountRate(discountRate)
         .receivedValue(receivedValue)
@@ -129,30 +139,21 @@ public class PurchaseService implements PurchaseImpl {
     return new ResponseDTO("Venta registrada con éxito");
   }
 
-  private BigDecimal convertCurrency(BigDecimal amount, CurrencyEnum fromCurrency, CurrencyEnum toCurrency) {
-    ExchangeRateDTO exchangeRateDTO = this.exchangeRateService.getTodayExchangeRate();
-
-    if (fromCurrency == CurrencyEnum.USD && toCurrency == CurrencyEnum.PEN) {
-      // Convertir de USD a PEN usando la tasa de venta
-      return amount.multiply(exchangeRateDTO.getCurrencyRates().get(0).getSalePrice());
-    } else if (fromCurrency == CurrencyEnum.PEN && toCurrency == CurrencyEnum.USD) {
-      // Convertir de PEN a USD usando la tasa de compra
-      return amount.divide(exchangeRateDTO.getCurrencyRates().get(0).getPurchasePrice(), RoundingMode.HALF_UP);
-    }
-
-    return amount;
-  }
-
-  private BigDecimal calculateTep(BigDecimal nominalRate, Integer days) {
+  private BigDecimal calculateTep(BigDecimal nominalRate, Integer n) {
+    // TEP = ((1 + TN/m)^n) - 1
     double m = 360;
-    return BigDecimal.valueOf(Math.pow(1 + nominalRate.doubleValue() / m, days / 360.0 * m) - 1);
+    return BigDecimal.valueOf(Math.pow(1 + nominalRate.doubleValue() / m, n) - 1);
   }
 
-  private BigDecimal calculateDiscountRate(BigDecimal tep) {
-    return tep.divide(BigDecimal.ONE.add(tep), RoundingMode.HALF_UP);
+  public BigDecimal calculateDiscountRate(BigDecimal tep) {
+    // d = TEP / (1 + TEP)
+    BigDecimal denominator = BigDecimal.ONE.add(tep);
+    BigDecimal discountRate = tep.divide(denominator, RoundingMode.HALF_UP);
+    return discountRate;
   }
 
   private BigDecimal calculateReceivedValue(BigDecimal nominalValue, BigDecimal discountRate) {
+    // Valor recibido = Valor nominal * (1 - tasa de descuento)
     return nominalValue.multiply(BigDecimal.ONE.subtract(discountRate));
   }
 
@@ -230,7 +231,6 @@ public class PurchaseService implements PurchaseImpl {
   @Override
   @Transactional
   public ResponseDTO payDocument(String username, Long purchaseId) {
-
     BankEntity bank = bankRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
@@ -242,20 +242,32 @@ public class PurchaseService implements PurchaseImpl {
     }
 
     log.info("- Realizando pago de compra con ID: " + purchaseId + " - Por el banco: " + bank.getRealName());
-    log.info("- Monto a pagar: " + purchase.getReceivedValue());
+    log.info("- Monto pagado al banco (VR que recibió la empresa): " + purchase.getReceivedValue());
+    log.info("- Valor nominal del documento (Total recuperado del cliente): " + purchase.getNominalValue());
     log.info("- Fecha de pago: " + LocalDateTime.now());
 
-    // Cambiar cantidades de dinero
-    BigDecimal amount = purchase.getReceivedValue();
-
-    // if (bank.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-    // throw new IllegalArgumentException("Fondos insuficientes");
-    // }
-
+    // Ganancia del banco
+    BigDecimal nominalValue = purchase.getNominalValue(); // Total recuperado del cliente
+    BigDecimal receivedValue = purchase.getReceivedValue(); // Valor pagado a la empresa
+    CurrencyEnum purchaseCurrency = purchase.getCurrency();
     CompanyEntity company = purchase.getDocument().getCompany();
+    CurrencyEnum mainCurrency = company.getMainCurrency();
 
-    bank.setBalance(bank.getBalance().subtract(amount));
-    company.setBalance(company.getBalance().add(amount));
+    // Conversión de moneda si es necesario
+    BigDecimal convertedReceivedValue = receivedValue;
+    if (!purchaseCurrency.equals(mainCurrency)) {
+      ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
+      convertedReceivedValue = this.purchaseUtils.convertCurrency(receivedValue, purchaseCurrency, mainCurrency,
+          exchangeRateDTO);
+    }
+
+    // Diferencia entre lo recibido del cliente y lo pagado a la empresa
+    BigDecimal bankProfit = nominalValue.subtract(receivedValue);
+    log.info("- Ganancia del banco en esta operación: " + bankProfit + " " + purchaseCurrency);
+
+    // Actualización de balances
+    bank.setBalance(bank.getBalance().add(bankProfit));
+    company.setBalance(company.getBalance().add(convertedReceivedValue));
 
     // Cambiar estados
     purchase.getDocument().setState(StateEnum.PAID);
@@ -268,14 +280,14 @@ public class PurchaseService implements PurchaseImpl {
     documentRepository.save(purchase.getDocument());
     purchaseRepository.save(purchase);
 
-    return new ResponseDTO("Pago realizado con éxito");
+    // Actualización del WebSocket con los datos actualizados del dashboard
+    CompanyDashboard updatedDashboard = companyService.getDashboard(company.getUsername(),
+        company.getPreviewDataCurrency());
+    this.companyUpdateService.sendDashboardUpdate(updatedDashboard);
+
+    return new ResponseDTO("Pago realizado con éxito!");
   }
 
-  // Como banco, decido cuando pagar las compras
-  // Si la fecha de expiracion del documento (dueDate) está a menos de 12 horas o
-  // ya pasó, la compra se realiza automáticamente
-  // Si el banco no tiene dinero suficiente, la compra se realiza de todos modos y
-  // el banco queda en negativo
   @Override
   public void tryToBuyByPurchaseDate() {
     List<PurchaseEntity> purchases = purchaseRepository.findAllByState(StateEnum.PENDING);

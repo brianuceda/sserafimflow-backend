@@ -1,5 +1,6 @@
 package com.brianuceda.sserafimflow.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -115,8 +116,9 @@ public class PortfolioService implements PortfolioImpl {
     documentRepository.saveAll(currentDocuments);
 
     // Asignar nuevos documentos
+    List<DocumentEntity> newDocuments = new ArrayList<>();
     if (changesPortfolioDTO.getDocumentsId() != null && !changesPortfolioDTO.getDocumentsId().isEmpty()) {
-      List<DocumentEntity> newDocuments = portfolio.getCompany().getDocuments().stream()
+      newDocuments = portfolio.getCompany().getDocuments().stream()
           .filter(doc -> changesPortfolioDTO.getDocumentsId().contains(doc.getId()) && doc.getPortfolio() == null)
           .collect(Collectors.toList());
 
@@ -130,7 +132,26 @@ public class PortfolioService implements PortfolioImpl {
       documentRepository.saveAll(newDocuments);
     }
 
+    // Determinar el estado del portafolio según el estado de los documentos
+    this.updatePortfolioStateBasedOnDocuments(portfolio, newDocuments);
+
     return new ResponseDTO("Cartera actualizada con éxito");
+  }
+
+  private void updatePortfolioStateBasedOnDocuments(PortfolioEntity portfolio, List<DocumentEntity> documents) {
+    boolean allNotSold = documents.stream().allMatch(doc -> doc.getState() == StateEnum.NOT_SELLED);
+    boolean allPaid = documents.stream().allMatch(doc -> doc.getState() == StateEnum.PAID);
+
+    if (allNotSold) {
+      portfolio.setState(StateEnum.NOT_SELLED);
+    } else if (allPaid) {
+      portfolio.setState(StateEnum.PAID);
+    } else {
+      portfolio.setState(StateEnum.PENDING);
+    }
+
+    // Guardar cambios en el estado del portafolio
+    portfolioRepository.save(portfolio);
   }
 
   @Override
