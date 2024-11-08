@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.CompanyDashboard;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
-import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.RateTypeEnum;
@@ -161,7 +160,7 @@ public class CompanyService implements CompanyImpl {
   }
 
   @Override
-  public ResponseDTO updateCompanyProfile(String username, CompanyDTO companyDTO) {
+  public CompanyDTO updateCompanyProfile(String username, CompanyDTO companyDTO) {
     CompanyEntity company = companyRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
@@ -212,24 +211,24 @@ public class CompanyService implements CompanyImpl {
 
     companyRepository.save(company);
 
-    // Mensaje de respuesta
-    String message;
-    if (fieldsUpdated.isEmpty()) {
-      message = "Nada que actualizar!";
-    } else if (fieldsUpdated.size() == 1) {
-      switch (fieldsUpdated.get(0)) {
-        case "realName" -> message = "Nombre actualizado correctamente!";
-        case "ruc" -> message = "RUC actualizado correctamente!";
-        case "username" -> message = "Email actualizado correctamente!";
-        case "mainCurrency" -> message = "Moneda principal y balance actualizados!";
-        case "previewDataCurrency" -> message = "Moneda de previsualización actualizada!";
-        default -> message = "Campo actualizado correctamente!";
-      }
-    } else {
-      message = "Datos actualizados correctamente!";
-    }
+    // // Mensaje de respuesta
+    // String message;
+    // if (fieldsUpdated.isEmpty()) {
+    //   message = "Nada que actualizar!";
+    // } else if (fieldsUpdated.size() == 1) {
+    //   switch (fieldsUpdated.get(0)) {
+    //     case "realName" -> message = "Nombre actualizado correctamente!";
+    //     case "ruc" -> message = "RUC actualizado correctamente!";
+    //     case "username" -> message = "Email actualizado correctamente!";
+    //     case "mainCurrency" -> message = "Moneda principal y balance actualizados!";
+    //     case "previewDataCurrency" -> message = "Moneda de previsualización actualizada!";
+    //     default -> message = "Campo actualizado correctamente!";
+    //   }
+    // } else {
+    //   message = "Datos actualizados correctamente!";
+    // }
 
-    return new ResponseDTO(message);
+    return new CompanyDTO(company, false);
   }
 
 }

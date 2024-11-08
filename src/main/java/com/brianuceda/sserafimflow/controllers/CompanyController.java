@@ -83,12 +83,10 @@ public class CompanyController {
   }
 
   @PutMapping("/update-profile")
-  public ResponseEntity<ResponseDTO> updateCompanyProfile(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
+  public ResponseEntity<?> updateCompanyProfile(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
     try {
       String token = jwtUtils.getTokenFromRequest(request);
       String username = jwtUtils.getUsernameFromToken(token);
-
-      // Formateo de fecha
 
       return new ResponseEntity<>(this.companyImpl.updateCompanyProfile(username, companyDTO), HttpStatus.OK);
     } catch (IllegalArgumentException ex) {
