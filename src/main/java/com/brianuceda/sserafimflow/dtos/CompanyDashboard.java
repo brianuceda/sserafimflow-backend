@@ -23,8 +23,9 @@ public class CompanyDashboard {
   private List<Integer> cantSoldInvoicesPerMonth;
   private List<BigDecimal> amountSoldLettersPerMonth;
   private List<BigDecimal> amountSoldInvoicesPerMonth;
-  private ExchangeRateDTO exchangeRate;
   private CurrencyEnum mainCurrency;
+  
+  private ExchangeRateDTO todayExchangeRate;
   
   public CompanyDashboard() {
     this.totalNominalValueIssued = new BigDecimal(0);
@@ -35,7 +36,7 @@ public class CompanyDashboard {
     this.cantSoldInvoicesPerMonth = new ArrayList<>();
     this.amountSoldLettersPerMonth = new ArrayList<>();
     this.amountSoldInvoicesPerMonth = new ArrayList<>();
-    this.exchangeRate = new ExchangeRateDTO();
+    this.todayExchangeRate = new ExchangeRateDTO();
     this.mainCurrency = CurrencyEnum.PEN;
   }
 }

@@ -1,8 +1,8 @@
 package com.brianuceda.sserafimflow.dtos;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import com.brianuceda.sserafimflow.entities.BankEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
@@ -31,7 +31,7 @@ public class BankDTO {
   private BigDecimal nominalRate;
   private BigDecimal effectiveRate;
   private BigDecimal extraCommission;
-  private Date creationDate;
+  private LocalDate creationDate;
   private Timestamp accountCreationDate;
   
   public BankDTO(BankEntity bank, boolean includeId) {

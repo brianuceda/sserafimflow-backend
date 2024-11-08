@@ -1,8 +1,9 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
         .previewDataCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
         .balance(BigDecimal.valueOf(0.0))
         .role(AuthRoleEnum.COMPANY)
-        .creationDate(companyDTO.getCreationDate() != null ? companyDTO.getCreationDate() : new Date(System.currentTimeMillis()))
+        .creationDate(companyDTO.getCreationDate() != null ? (LocalDate) companyDTO.getCreationDate() : LocalDate.now())
         .accountCreationDate(Timestamp.from(Instant.now()))
         .build();
 

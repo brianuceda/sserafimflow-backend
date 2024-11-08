@@ -80,7 +80,7 @@ public class BankController {
   }
   
   @PreAuthorize("hasAnyRole('BANK', 'COMPANY')")
-  @GetMapping("/all-banks")
+  @GetMapping("/all-banks-associated")
   public ResponseEntity<?> getAllBanks(HttpServletRequest request) {
     try {
       return new ResponseEntity<>(bankImpl.getAllBanks(), HttpStatus.OK);

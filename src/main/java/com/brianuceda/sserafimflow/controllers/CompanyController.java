@@ -53,20 +53,7 @@ public class CompanyController {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
-
-  @PreAuthorize("hasRole('COMPANY')")
-  @GetMapping("/profile")
-  public ResponseEntity<?> getProfile(HttpServletRequest request, BigDecimal amount) {
-    try {
-      String token = this.jwtUtils.getTokenFromRequest(request);
-      String username = this.jwtUtils.getUsernameFromToken(token);
-
-      return new ResponseEntity<>(companyImpl.getProfile(username), HttpStatus.OK);
-    } catch (IllegalArgumentException ex) {
-      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
-    }
-  }
-
+  
   @PreAuthorize("hasRole('COMPANY')")
   @GetMapping("/dashboard")
   public ResponseEntity<?> getDashboard(HttpServletRequest request,
@@ -82,11 +69,26 @@ public class CompanyController {
     }
   }
 
+  @PreAuthorize("hasRole('COMPANY')")
+  @GetMapping("/profile")
+  public ResponseEntity<?> getProfile(HttpServletRequest request, BigDecimal amount) {
+    try {
+      String token = this.jwtUtils.getTokenFromRequest(request);
+      String username = this.jwtUtils.getUsernameFromToken(token);
+
+      return new ResponseEntity<>(companyImpl.getProfile(username), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @PutMapping("/update-profile")
   public ResponseEntity<ResponseDTO> updateCompanyProfile(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
     try {
       String token = jwtUtils.getTokenFromRequest(request);
       String username = jwtUtils.getUsernameFromToken(token);
+
+      // Formateo de fecha
 
       return new ResponseEntity<>(this.companyImpl.updateCompanyProfile(username, companyDTO), HttpStatus.OK);
     } catch (IllegalArgumentException ex) {

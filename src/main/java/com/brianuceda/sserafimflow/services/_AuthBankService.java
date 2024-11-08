@@ -1,9 +1,9 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,7 +69,7 @@ public class _AuthBankService implements _AuthBankImpl {
         .previewDataCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
         .balance(new BigDecimal(1000000))
         .role(AuthRoleEnum.BANK)
-        .creationDate(bankDTO.getCreationDate() != null ? bankDTO.getCreationDate() : new Date(System.currentTimeMillis()))
+        .creationDate(bankDTO.getCreationDate() != null ? bankDTO.getCreationDate() : LocalDate.now())
         .accountCreationDate(Timestamp.from(Instant.now()))
         .nominalRate(bankDTO.getNominalRate())
         .effectiveRate(bankDTO.getEffectiveRate())

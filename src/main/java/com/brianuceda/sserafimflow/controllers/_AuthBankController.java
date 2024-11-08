@@ -44,7 +44,10 @@ public class _AuthBankController {
       @RequestPart(value = "image", required = false) MultipartFile image) {
 
     try {
+      // Reset
       bankDTO.setId(null);
+
+      // Validations
       this.validateOrigins(request);
       this.validationsRegisterBank(bankDTO);
 
@@ -156,7 +159,7 @@ public class _AuthBankController {
       throw new IllegalArgumentException("La contraseña es obligatoria");
     }
 
-    if (bankDTO.getPassword().length() > 150) {
+    if (bankDTO.getPassword().length() > 50) {
       throw new IllegalArgumentException("La contraseña es demasiado larga");
     }
 

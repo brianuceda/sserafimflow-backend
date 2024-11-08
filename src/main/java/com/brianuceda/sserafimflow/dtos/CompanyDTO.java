@@ -2,6 +2,7 @@ package com.brianuceda.sserafimflow.dtos;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CompanyDTO {
+  private Long id;
   private String realName;
   private String ruc;
   private String username;
@@ -24,10 +26,13 @@ public class CompanyDTO {
   private CurrencyEnum mainCurrency;
   private CurrencyEnum previewDataCurrency;
   private BigDecimal balance;
-  private Date creationDate;
+  private LocalDate creationDate;
   private Timestamp accountCreationDate;
 
-  public CompanyDTO(CompanyEntity company) {
+  public CompanyDTO(CompanyEntity company, boolean includeId) {
+    if (includeId) {
+      this.id = company.getId();
+    } 
     this.realName = company.getRealName();
     this.ruc = company.getRuc();
     this.username = company.getUsername();

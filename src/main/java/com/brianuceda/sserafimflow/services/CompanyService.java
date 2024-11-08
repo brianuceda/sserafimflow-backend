@@ -46,14 +46,14 @@ public class CompanyService implements CompanyImpl {
     }
 
     // Tasa de cambio del día
-    dashboard.setExchangeRate(this.purchaseUtils.getTodayExchangeRate());
+    dashboard.setTodayExchangeRate(this.purchaseUtils.getTodayExchangeRate());
     dashboard.setMainCurrency(targetCurrency);
 
     // Datos generales
-    this.accumulateGeneralData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getExchangeRate());
+    this.accumulateGeneralData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getTodayExchangeRate());
 
     // Datos mensuales
-    this.accumulateMonthlyData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getExchangeRate());
+    this.accumulateMonthlyData(dashboard, company.getId(), dashboard.getMainCurrency(), dashboard.getTodayExchangeRate());
 
     return dashboard;
   }
@@ -157,7 +157,7 @@ public class CompanyService implements CompanyImpl {
     CompanyEntity company = companyRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
-    return new CompanyDTO(company);
+    return new CompanyDTO(company, false);
   }
 
   @Override

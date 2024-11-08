@@ -2,6 +2,7 @@ package com.brianuceda.sserafimflow.entities;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +36,7 @@ public class CompanyEntity implements UserDetails {
   @Column(unique = true, nullable = false, length = 150)
   private String username; // Email
 
-  @Column(nullable = false, length = 150)
+  @Column(nullable = false, length = 255)
   private String password;
 
   @Column(nullable = true)
@@ -58,7 +59,7 @@ public class CompanyEntity implements UserDetails {
   private AuthRoleEnum role;
 
   @Column(nullable = false)
-  private Date creationDate;
+  private LocalDate creationDate;
 
   @Column(nullable = false)
   private Timestamp accountCreationDate;

@@ -41,6 +41,10 @@ public class _AuthCompanyController {
       @RequestPart(value = "image", required = false) MultipartFile image) {
 
     try {
+      // Reset
+      companyDTO.setId(null);
+
+      // Validations
       this.validateOrigins(request);
       this.validationsRegisterCompany(companyDTO);
 
@@ -133,7 +137,7 @@ public class _AuthCompanyController {
       throw new IllegalArgumentException("La contraseña es obligatoria");
     }
 
-    if (companyDTO.getPassword().length() > 150) {
+    if (companyDTO.getPassword().length() > 50) {
       throw new IllegalArgumentException("La contraseña es demasiado larga");
     }
 
