@@ -29,8 +29,8 @@ public class DocumentController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
-  @PostMapping("/create-document")
-  public ResponseEntity<ResponseDTO> registerDocument(HttpServletRequest request, @RequestBody DocumentDTO documentDTO) {
+  @PostMapping("/create")
+  public ResponseEntity<ResponseDTO> createDocument(HttpServletRequest request, @RequestBody DocumentDTO documentDTO) {
     try {
       // Validaciones
       validateDocumentRequest(request, documentDTO);
@@ -75,6 +75,36 @@ public class DocumentController {
     } catch (IllegalArgumentException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
+  }
+
+  @PreAuthorize("hasRole('COMPANY')")
+  @GetMapping("/{id}")
+  public ResponseEntity<?> getDocumentById(HttpServletRequest request, @PathVariable Long id) {
+      try {
+          // Obtener el token y el nombre de usuario
+          String token = jwtUtils.getTokenFromRequest(request);
+          String username = jwtUtils.getUsernameFromToken(token);
+
+          // Llamar al servicio para obtener el documento
+          return new ResponseEntity<>(this.documentImpl.getDocumentById(username, id), HttpStatus.OK);
+      } catch (IllegalArgumentException ex) {
+          return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+      }
+  }
+
+  @PreAuthorize("hasRole('COMPANY')")
+  @PutMapping("/edit")
+  public ResponseEntity<?> updateDocument(HttpServletRequest request, @RequestBody DocumentDTO documentDTO) {
+      try {
+          // Obtener el token y el nombre de usuario
+          String token = jwtUtils.getTokenFromRequest(request);
+          String username = jwtUtils.getUsernameFromToken(token);
+
+          // Llamar al servicio para actualizar el documento
+          return new ResponseEntity<>(this.documentImpl.updateDocument(username, documentDTO), HttpStatus.OK);
+      } catch (IllegalArgumentException ex) {
+          return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+      }
   }
 
   private void validateDocumentRequest(HttpServletRequest request, DocumentDTO documentDTO) {

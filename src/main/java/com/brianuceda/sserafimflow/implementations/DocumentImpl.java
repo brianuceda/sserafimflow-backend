@@ -9,5 +9,7 @@ import com.brianuceda.sserafimflow.enums.StateEnum;
 public interface DocumentImpl {
   List<DocumentDTO> getAllDocumentsBySpecificState(String username, StateEnum state);
   List<DocumentDTO> getAllDocumentsNotInAnyPortfolio(String username);
+  DocumentDTO getDocumentById(String username, Long documentId);
   ResponseDTO createDocument(String username, DocumentDTO documentDTO);
+  ResponseDTO updateDocument(String username, DocumentDTO updatedFields);
 }
