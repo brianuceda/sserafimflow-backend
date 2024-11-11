@@ -1,3 +1,5 @@
+a partir de acá, todo es para acabar el tf, nada más.
+
 ## Tasas de Cambio
 `¿Qué le está pasando a la moneda principal?`
 - PEN -> USD: **salePrice**
