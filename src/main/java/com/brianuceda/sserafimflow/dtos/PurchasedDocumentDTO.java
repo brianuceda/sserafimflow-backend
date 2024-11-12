@@ -35,7 +35,6 @@ public class PurchasedDocumentDTO {
   private StateEnum state;
 
   private BankDTO bank;
-  private CompanyDTO company;
 
   private DocumentDTO document;
 
@@ -56,18 +55,11 @@ public class PurchasedDocumentDTO {
     this.bank = new BankDTO(
         purchase.getBank().getId(),
         purchase.getBank().getRealName(),
-        purchase.getBank().getRuc(),
-        purchase.getBank().getMainCurrency());
-
-    this.company = new CompanyDTO(
-        purchase.getDocument().getCompany().getRealName(),
-        purchase.getDocument().getCompany().getRuc(),
-        purchase.getDocument().getCompany().getImageUrl());
+        purchase.getBank().getImageUrl());
 
     this.document = new DocumentDTO(
         purchase.getDocument().getId(),
         purchase.getDocument().getDocumentType(),
-        purchase.getDocument().getDueDate(),
         purchase.getDocument().getClientName());
   }
 }

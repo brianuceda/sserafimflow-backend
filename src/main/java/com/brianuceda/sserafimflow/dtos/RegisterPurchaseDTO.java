@@ -1,7 +1,5 @@
 package com.brianuceda.sserafimflow.dtos;
 
-import java.time.LocalDate;
-
 import com.brianuceda.sserafimflow.enums.RateTypeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -17,5 +15,4 @@ public class RegisterPurchaseDTO {
   private Long bankId;
   private Long documentId;
   private RateTypeEnum rateType;
-  private LocalDate purchaseDate;
 }

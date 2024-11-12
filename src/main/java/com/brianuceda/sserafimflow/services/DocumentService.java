@@ -16,8 +16,10 @@ import com.brianuceda.sserafimflow.respositories.CompanyRepository;
 import com.brianuceda.sserafimflow.respositories.DocumentRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.java.Log;
 
 @Service
+@Log
 public class DocumentService implements DocumentImpl {
   private final CompanyRepository companyRepository;
   private final DocumentRepository documentRepository;
@@ -128,63 +130,74 @@ public class DocumentService implements DocumentImpl {
   }
 
   @Override
-@Transactional
-public ResponseDTO updateDocument(String username, DocumentDTO updatedFields) {
+  @Transactional
+  public ResponseDTO updateDocument(String username, DocumentDTO updatedFields) {
     // Buscar la compañía por el nombre de usuario
     CompanyEntity company = companyRepository.findByUsername(username)
-            .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
     // Buscar el documento a editar
     DocumentEntity document = documentRepository.findById(updatedFields.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
+        .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
 
     // Verificar que el documento pertenece a la empresa
     if (!document.getCompany().getId().equals(company.getId())) {
-        throw new IllegalArgumentException("No tiene permiso para editar este documento");
+      throw new IllegalArgumentException("No tiene permiso para editar este documento");
     }
 
     // Lista de campos actualizados
     List<String> fieldsUpdated = new ArrayList<>();
 
     // Actualizar solo los campos permitidos
-    if (updatedFields.getDocumentType() != null && 
+    if (updatedFields.getDocumentType() != null &&
         !updatedFields.getDocumentType().equals(document.getDocumentType())) {
-        document.setDocumentType(updatedFields.getDocumentType());
-        fieldsUpdated.add("documentType");
+      document.setDocumentType(updatedFields.getDocumentType());
+      fieldsUpdated.add("documentType");
     }
 
-    if (updatedFields.getAmount() != null && 
+    if (updatedFields.getAmount() != null &&
         updatedFields.getAmount().compareTo(BigDecimal.ZERO) > 0 &&
         !updatedFields.getAmount().equals(document.getAmount())) {
-        document.setAmount(updatedFields.getAmount());
-        fieldsUpdated.add("amount");
+      document.setAmount(updatedFields.getAmount());
+      fieldsUpdated.add("amount");
     }
 
-    if (updatedFields.getCurrency() != null && 
+    if (updatedFields.getCurrency() != null &&
         !updatedFields.getCurrency().equals(document.getCurrency())) {
-        document.setCurrency(updatedFields.getCurrency());
-        fieldsUpdated.add("currency");
+      document.setCurrency(updatedFields.getCurrency());
+      fieldsUpdated.add("currency");
     }
 
-    if (updatedFields.getDueDate() != null && 
-        updatedFields.getDueDate().isAfter(LocalDate.now()) &&
-        !updatedFields.getDueDate().equals(document.getDueDate())) {
-        document.setDueDate(updatedFields.getDueDate());
-        fieldsUpdated.add("dueDate");
+    if (updatedFields.getDiscountDate() != null &&
+        !updatedFields.getDiscountDate().isBefore(LocalDate.now()) &&
+        !updatedFields.getDiscountDate().equals(document.getDiscountDate())) {
+
+      document.setDiscountDate(updatedFields.getDiscountDate());
+      fieldsUpdated.add("discountDate");
     }
 
-    if (updatedFields.getClientName() != null && 
+    if (updatedFields.getExpirationDate() != null &&
+        !updatedFields.getExpirationDate().isBefore(LocalDate.now()) &&
+        (updatedFields.getDiscountDate() == null 
+            || updatedFields.getExpirationDate().isAfter(updatedFields.getDiscountDate())) &&
+        !updatedFields.getExpirationDate().equals(document.getExpirationDate())) {
+
+      document.setExpirationDate(updatedFields.getExpirationDate());
+      fieldsUpdated.add("expirationDate");
+    }
+
+    if (updatedFields.getClientName() != null &&
         !updatedFields.getClientName().trim().isEmpty() &&
         !updatedFields.getClientName().equals(document.getClientName())) {
-        document.setClientName(updatedFields.getClientName());
-        fieldsUpdated.add("clientName");
+      document.setClientName(updatedFields.getClientName());
+      fieldsUpdated.add("clientName");
     }
 
-    if (updatedFields.getClientPhone() != null && 
+    if (updatedFields.getClientPhone() != null &&
         !updatedFields.getClientPhone().trim().isEmpty() &&
         !updatedFields.getClientPhone().equals(document.getClientPhone())) {
-        document.setClientPhone(updatedFields.getClientPhone());
-        fieldsUpdated.add("clientPhone");
+      document.setClientPhone(updatedFields.getClientPhone());
+      fieldsUpdated.add("clientPhone");
     }
 
     // Guardar cambios en el repositorio
@@ -192,5 +205,5 @@ public ResponseDTO updateDocument(String username, DocumentDTO updatedFields) {
 
     // Retornar respuesta
     return new ResponseDTO("Documento " + document.getId() + " actualizado con éxito");
-}
+  }
 }

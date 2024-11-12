@@ -53,10 +53,9 @@ public class BankDTO {
   }
 
   // Para mostrar en los documentos de la empresa comprados por el banco
-  public BankDTO(Long id, String realName, String ruc, CurrencyEnum mainCurrency) {
+  public BankDTO(Long id, String realName, String imageUrl) {
     this.id = id;
     this.realName = realName;
-    this.ruc = ruc;
-    this.mainCurrency = mainCurrency;
+    this.imageUrl = imageUrl;
   }
 }

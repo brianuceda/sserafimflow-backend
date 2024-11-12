@@ -32,6 +32,19 @@ public class PurchaseController {
     this.jwtUtils = jwtUtils;
     this.purchaseImpl = purchaseImpl;
   }
+
+  @PreAuthorize("hasRole('COMPANY')")
+  @PostMapping("/calculate-purchase")
+  public ResponseEntity<?> calculatePurchase(HttpServletRequest request, @RequestBody RegisterPurchaseDTO purchaseDTO) {
+    try {
+      String token = this.jwtUtils.getTokenFromRequest(request);
+      String username = this.jwtUtils.getUsernameFromToken(token);
+
+      return new ResponseEntity<>(purchaseImpl.getPurchaseCalculations(username, purchaseDTO), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+  }
   
   @PreAuthorize("hasRole('COMPANY')")
   @PostMapping("/sell-document")

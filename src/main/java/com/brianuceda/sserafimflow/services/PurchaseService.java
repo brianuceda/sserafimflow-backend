@@ -2,6 +2,7 @@ package com.brianuceda.sserafimflow.services;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -76,6 +77,37 @@ public class PurchaseService implements PurchaseImpl {
     BankEntity bank = bankRepository.findById(purchaseDTO.getBankId())
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
+    PurchaseEntity purchase = doCalcs(purchaseDTO, document, bank);
+    document.setState(StateEnum.PENDING);
+
+    // Guardar la compra y asociar el documento
+    documentRepository.save(document);
+    purchaseRepository.save(purchase);
+
+    return new ResponseDTO("Venta registrada con éxito");
+  }
+  
+  @Override
+  public PurchasedDocumentDTO getPurchaseCalculations(String username, RegisterPurchaseDTO purchaseDTO) {
+    CompanyEntity company = companyRepository.findByUsername(username)
+        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+
+    DocumentEntity document = documentRepository.findByIdAndCompanyId(purchaseDTO.getDocumentId(), company.getId())
+        .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
+
+    if (document.getState() == StateEnum.PENDING || document.getState() == StateEnum.PAID) {
+      throw new IllegalArgumentException("El documento ya fue vendido");
+    }
+
+    BankEntity bank = bankRepository.findById(purchaseDTO.getBankId())
+        .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
+
+    PurchaseEntity purchase = doCalcs(purchaseDTO, document, bank);
+
+    return new PurchasedDocumentDTO(purchase);
+  }
+
+  private PurchaseEntity doCalcs(RegisterPurchaseDTO purchaseDTO, DocumentEntity document, BankEntity bank) {
     // Conversión de moneda si es necesario
     BigDecimal nominalValue = document.getAmount();
     if (document.getCurrency() != bank.getMainCurrency()) {
@@ -84,12 +116,7 @@ public class PurchaseService implements PurchaseImpl {
           exchangeRateDTO);
     }
 
-    // Si no se especifica la fecha de compra, se toma la fecha actual
-    LocalDateTime purchaseDate = purchaseDTO.getPurchaseDate() != null
-        ? purchaseDTO.getPurchaseDate().atStartOfDay()
-        : LocalDateTime.now();
-
-    Integer days = (int) ChronoUnit.DAYS.between(purchaseDate.toLocalDate(), document.getDueDate());
+    Integer days = (int) ChronoUnit.DAYS.between(document.getDiscountDate(), document.getExpirationDate());
 
     // TEP y Tasa Descontada
     BigDecimal calculatedOrUsedTEP = null;
@@ -113,12 +140,9 @@ public class PurchaseService implements PurchaseImpl {
     BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP);
     BigDecimal receivedValue = calculateReceivedValue(nominalValue, discountRate);
 
-    // Marca en proceso de venta el documento
-    document.setState(StateEnum.PENDING);
-
     // Crear la compra
     PurchaseEntity purchase = PurchaseEntity.builder()
-        .purchaseDate(purchaseDate.toLocalDate())
+        .purchaseDate(LocalDate.now())
         .currency(bank.getMainCurrency())
         .nominalValue(nominalValue)
         .discountRate(discountRate)
@@ -132,11 +156,7 @@ public class PurchaseService implements PurchaseImpl {
         .document(document)
         .build();
 
-    // Guardar la compra y asociar el documento
-    documentRepository.save(document);
-    purchaseRepository.save(purchase);
-
-    return new ResponseDTO("Venta registrada con éxito");
+    return purchase;
   }
 
   private BigDecimal calculateTep(BigDecimal nominalRate, Integer n) {
@@ -294,10 +314,12 @@ public class PurchaseService implements PurchaseImpl {
 
     log.info("Cantidad de compras pendientes de pago: " + purchases.size());
 
+    // Realiza el pago si la fecha de descuento es igual o anterior a la fecha actual
     for (PurchaseEntity purchase : purchases) {
-      if (purchase.getPurchaseDate().atStartOfDay().isBefore(LocalDateTime.now())) {
+      if (purchase.getDocument().getDiscountDate() != null && 
+          !purchase.getDocument().getDiscountDate().isAfter(LocalDate.now())) { 
         this.payDocument(purchase.getBank().getUsername(), purchase.getId());
       }
-    }
+  }
   }
 }

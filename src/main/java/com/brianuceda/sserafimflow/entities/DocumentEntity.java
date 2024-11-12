@@ -38,7 +38,10 @@ public class DocumentEntity {
   private LocalDate issueDate;
 
   @Column(nullable = false)
-  private LocalDate dueDate;
+  private LocalDate discountDate;
+
+  @Column(nullable = false)
+  private LocalDate expirationDate;
 
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)
@@ -64,7 +67,8 @@ public class DocumentEntity {
     this.amount = documentDTO.getAmount();
     this.currency = documentDTO.getCurrency();
     this.issueDate = documentDTO.getIssueDate();
-    this.dueDate = documentDTO.getDueDate();
+    this.discountDate = documentDTO.getDiscountDate();
+    this.expirationDate = documentDTO.getExpirationDate();
     this.clientName = documentDTO.getClientName();
     this.clientPhone = documentDTO.getClientPhone();
     this.state = documentDTO.getState();

@@ -25,7 +25,8 @@ public class DocumentDTO {
   private BigDecimal amount;
   private CurrencyEnum currency;
   private LocalDate issueDate;
-  private LocalDate dueDate;
+  private LocalDate discountDate;
+  private LocalDate expirationDate;
   private StateEnum state;
   private String clientName;
   private String clientPhone;
@@ -40,17 +41,17 @@ public class DocumentDTO {
     this.amount = document.getAmount();
     this.currency = document.getCurrency();
     this.issueDate = document.getIssueDate();
-    this.dueDate = document.getDueDate();
+    this.discountDate = document.getDiscountDate();
+    this.expirationDate = document.getExpirationDate();
     this.state = document.getState();
     this.clientName = document.getClientName();
     this.clientPhone = document.getClientPhone();
   }
 
   // Para mostrar en la compra y en la cartera
-  public DocumentDTO(Long id, DocumentTypeEnum documentType, LocalDate documentDueDate, String clientName) {
+  public DocumentDTO(Long id, DocumentTypeEnum documentType, String clientName) {
     this.id = id;
     this.documentType = documentType;
-    this.dueDate = documentDueDate;
     this.clientName = clientName;
   }
 
