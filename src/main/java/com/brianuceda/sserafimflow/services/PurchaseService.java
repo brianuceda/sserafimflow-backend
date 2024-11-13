@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 
 import com.brianuceda.sserafimflow.dtos.CompanyDashboard;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
-import com.brianuceda.sserafimflow.dtos.PurchasedDocumentDTO;
-import com.brianuceda.sserafimflow.dtos.RegisterPurchaseDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.PurchaseEquationsDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.PurchaseEquationsDTO.*;
+import com.brianuceda.sserafimflow.dtos.purchase.PurchasedDocumentDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.RegisterPurchaseDTO;
 import com.brianuceda.sserafimflow.entities.BankEntity;
 import com.brianuceda.sserafimflow.entities.CompanyEntity;
 import com.brianuceda.sserafimflow.entities.DocumentEntity;
@@ -60,7 +62,6 @@ public class PurchaseService implements PurchaseImpl {
     this.purchaseUtils = purchaseUtils;
   }
 
-  // Company
   @Override
   @Transactional
   public ResponseDTO sellDocument(String username, RegisterPurchaseDTO purchaseDTO) {
@@ -77,7 +78,55 @@ public class PurchaseService implements PurchaseImpl {
     BankEntity bank = bankRepository.findById(purchaseDTO.getBankId())
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
-    PurchaseEntity purchase = doCalcs(purchaseDTO, document, bank);
+    // Conversión de moneda si es necesario
+    BigDecimal nominalValue = document.getAmount();
+    if (document.getCurrency() != bank.getMainCurrency()) {
+      ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
+      nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getMainCurrency(),
+          exchangeRateDTO);
+    }
+    nominalValue = nominalValue.setScale(4, RoundingMode.HALF_UP); // Limitar a 4 decimales
+
+    Integer days = (int) ChronoUnit.DAYS.between(document.getDiscountDate(), document.getExpirationDate());
+
+    // TEP y Tasa Descontada
+    BigDecimal calculatedOrUsedTEP = null;
+    BigDecimal rateUsed = null;
+
+    switch (purchaseDTO.getRateType()) {
+      case NOMINAL:
+        calculatedOrUsedTEP = calculateTep(bank.getNominalRate(), days).setScale(4, RoundingMode.HALF_UP);
+        rateUsed = bank.getNominalRate().setScale(4, RoundingMode.HALF_UP);
+        break;
+
+      case EFFECTIVE:
+        calculatedOrUsedTEP = bank.getEffectiveRate().setScale(4, RoundingMode.HALF_UP);
+        rateUsed = bank.getEffectiveRate().setScale(4, RoundingMode.HALF_UP);
+        break;
+
+      default:
+        throw new IllegalArgumentException("Tipo de tasa no permitido");
+    }
+
+    BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP).setScale(4, RoundingMode.HALF_UP);
+    BigDecimal receivedValue = calculateReceivedValue(nominalValue, discountRate).setScale(4, RoundingMode.HALF_UP);
+
+    // Crear la compra
+    PurchaseEntity purchase = PurchaseEntity.builder()
+        .purchaseDate(document.getDiscountDate())
+        .currency(bank.getMainCurrency())
+        .nominalValue(nominalValue)
+        .discountRate(discountRate)
+        .receivedValue(receivedValue)
+        .days(days)
+        .tep(calculatedOrUsedTEP)
+        .rateType(purchaseDTO.getRateType())
+        .rateValue(rateUsed)
+        .state(StateEnum.PENDING)
+        .bank(bank)
+        .document(document)
+        .build();
+
     document.setState(StateEnum.PENDING);
 
     // Guardar la compra y asociar el documento
@@ -86,12 +135,14 @@ public class PurchaseService implements PurchaseImpl {
 
     return new ResponseDTO("Venta registrada con éxito");
   }
-  
+
   @Override
-  public PurchasedDocumentDTO getPurchaseCalculations(String username, RegisterPurchaseDTO purchaseDTO) {
+  public PurchaseEquationsDTO getPurchaseCalculations(String username, RegisterPurchaseDTO purchaseDTO) {
+    // Buscar la empresa
     CompanyEntity company = companyRepository.findByUsername(username)
         .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
+    // Buscar el documento
     DocumentEntity document = documentRepository.findByIdAndCompanyId(purchaseDTO.getDocumentId(), company.getId())
         .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
 
@@ -102,61 +153,67 @@ public class PurchaseService implements PurchaseImpl {
     BankEntity bank = bankRepository.findById(purchaseDTO.getBankId())
         .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
 
-    PurchaseEntity purchase = doCalcs(purchaseDTO, document, bank);
-
-    return new PurchasedDocumentDTO(purchase);
-  }
-
-  private PurchaseEntity doCalcs(RegisterPurchaseDTO purchaseDTO, DocumentEntity document, BankEntity bank) {
-    // Conversión de moneda si es necesario
+    // Calcular el valor nominal en la moneda del banco (conversión si es necesario)
     BigDecimal nominalValue = document.getAmount();
     if (document.getCurrency() != bank.getMainCurrency()) {
       ExchangeRateDTO exchangeRateDTO = this.purchaseUtils.getTodayExchangeRate();
       nominalValue = this.purchaseUtils.convertCurrency(nominalValue, document.getCurrency(), bank.getMainCurrency(),
           exchangeRateDTO);
     }
+    nominalValue = nominalValue.setScale(4, RoundingMode.HALF_UP); // Limitar a 4 decimales
 
+    // Calcular los días entre la fecha de descuento y la fecha de expiración del
+    // documento
     Integer days = (int) ChronoUnit.DAYS.between(document.getDiscountDate(), document.getExpirationDate());
 
-    // TEP y Tasa Descontada
+    // Calcular TEP y la tasa nominal o efectiva utilizada
     BigDecimal calculatedOrUsedTEP = null;
     BigDecimal rateUsed = null;
 
     switch (purchaseDTO.getRateType()) {
       case NOMINAL:
-        calculatedOrUsedTEP = calculateTep(bank.getNominalRate(), days);
-        rateUsed = bank.getNominalRate();
+        calculatedOrUsedTEP = calculateTep(bank.getNominalRate(), days).setScale(4, RoundingMode.HALF_UP);
+        rateUsed = bank.getNominalRate().setScale(4, RoundingMode.HALF_UP);
         break;
-
       case EFFECTIVE:
-        calculatedOrUsedTEP = bank.getEffectiveRate();
-        rateUsed = bank.getEffectiveRate();
+        calculatedOrUsedTEP = bank.getEffectiveRate().setScale(4, RoundingMode.HALF_UP);
+        rateUsed = bank.getEffectiveRate().setScale(4, RoundingMode.HALF_UP);
         break;
-
       default:
         throw new IllegalArgumentException("Tipo de tasa no permitido");
     }
 
-    BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP);
-    BigDecimal receivedValue = calculateReceivedValue(nominalValue, discountRate);
+    // Calcular la tasa de descuento
+    BigDecimal discountRate = calculateDiscountRate(calculatedOrUsedTEP).setScale(4, RoundingMode.HALF_UP);
 
-    // Crear la compra
-    PurchaseEntity purchase = PurchaseEntity.builder()
-        .purchaseDate(LocalDate.now())
-        .currency(bank.getMainCurrency())
-        .nominalValue(nominalValue)
-        .discountRate(discountRate)
-        .receivedValue(receivedValue)
-        .days((int) days)
-        .tep(calculatedOrUsedTEP)
-        .rateType(purchaseDTO.getRateType())
-        .rateValue(rateUsed)
-        .state(StateEnum.PENDING)
-        .bank(bank)
-        .document(document)
+    // Calcular el valor recibido después del descuento
+    BigDecimal receivedValueAmount = calculateReceivedValue(nominalValue, discountRate).setScale(4,
+        RoundingMode.HALF_UP);
+
+    // Multiplicar por 100 y limitar a 4 decimales
+    Tep tep = Tep.builder()
+        .tn(rateUsed)
+        .m(360)
+        .n(days)
+        .value(calculatedOrUsedTEP.multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP))
         .build();
 
-    return purchase;
+    DiscountedRate discountedRate = DiscountedRate.builder()
+        .tep(calculatedOrUsedTEP)
+        .value(discountRate.multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP))
+        .build();
+
+    ReceivedValue receivedValue = ReceivedValue.builder()
+        .nominalValue(nominalValue)
+        .d(discountRate)
+        .value(receivedValueAmount.setScale(4, RoundingMode.HALF_UP))
+        .build();
+
+    return PurchaseEquationsDTO.builder()
+        .tep(tep)
+        .discountedRate(discountedRate)
+        .receivedValue(receivedValue)
+        .build();
   }
 
   private BigDecimal calculateTep(BigDecimal nominalRate, Integer n) {
@@ -291,8 +348,8 @@ public class PurchaseService implements PurchaseImpl {
 
     // Cambiar estados
     purchase.getDocument().setState(StateEnum.PAID);
+    purchase.setPayDate(LocalDate.now());
     purchase.setState(StateEnum.PAID);
-    purchase.setPayDate(LocalDateTime.now());
 
     // Guardar cambios
     bankRepository.save(bank);
@@ -314,12 +371,13 @@ public class PurchaseService implements PurchaseImpl {
 
     log.info("Cantidad de compras pendientes de pago: " + purchases.size());
 
-    // Realiza el pago si la fecha de descuento es igual o anterior a la fecha actual
+    // Realiza el pago si la fecha de descuento es igual o anterior a la fecha
+    // actual
     for (PurchaseEntity purchase : purchases) {
-      if (purchase.getDocument().getDiscountDate() != null && 
-          !purchase.getDocument().getDiscountDate().isAfter(LocalDate.now())) { 
+      if (purchase.getDocument().getDiscountDate() != null &&
+          !purchase.getDocument().getDiscountDate().isAfter(LocalDate.now())) {
         this.payDocument(purchase.getBank().getUsername(), purchase.getId());
       }
-  }
+    }
   }
 }

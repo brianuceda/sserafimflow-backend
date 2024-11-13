@@ -1,4 +1,4 @@
-package com.brianuceda.sserafimflow.dtos;
+package com.brianuceda.sserafimflow.dtos.purchase;
 
 import com.brianuceda.sserafimflow.enums.RateTypeEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;

@@ -6,15 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brianuceda.sserafimflow.dtos.PurchasedDocumentDTO;
-import com.brianuceda.sserafimflow.dtos.RegisterPurchaseDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.PurchasedDocumentDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.RegisterPurchaseDTO;
 import com.brianuceda.sserafimflow.enums.AuthRoleEnum;
+import com.brianuceda.sserafimflow.enums.RateTypeEnum;
 import com.brianuceda.sserafimflow.enums.StateEnum;
 import com.brianuceda.sserafimflow.implementations.PurchaseImpl;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
@@ -34,35 +34,44 @@ public class PurchaseController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
-  @PostMapping("/calculate-purchase")
-  public ResponseEntity<?> calculatePurchase(HttpServletRequest request, @RequestBody RegisterPurchaseDTO purchaseDTO) {
+  @GetMapping("/calculate-purchase")
+  public ResponseEntity<?> calculatePurchase(HttpServletRequest request,
+      @RequestParam Long bankId, @RequestParam Long documentId, @RequestParam RateTypeEnum rateType) {
+
     try {
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);
+
+      RegisterPurchaseDTO purchaseDTO = new RegisterPurchaseDTO(bankId, documentId, rateType);
 
       return new ResponseEntity<>(purchaseImpl.getPurchaseCalculations(username, purchaseDTO), HttpStatus.OK);
     } catch (IllegalArgumentException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
-  
+
   @PreAuthorize("hasRole('COMPANY')")
   @PostMapping("/sell-document")
-  public ResponseEntity<ResponseDTO> sellDocument(HttpServletRequest request, @RequestBody RegisterPurchaseDTO purchaseDTO) {
-    try {
+  public ResponseEntity<ResponseDTO> sellDocument(HttpServletRequest request,
+      @RequestParam Long bankId, @RequestParam Long documentId, @RequestParam RateTypeEnum rateType) {
 
+    try {
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);
+
+      RegisterPurchaseDTO purchaseDTO = new RegisterPurchaseDTO(bankId, documentId, rateType);
 
       return new ResponseEntity<>(purchaseImpl.sellDocument(username, purchaseDTO), HttpStatus.CREATED);
     } catch (IllegalArgumentException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
-  
+
   @PreAuthorize("hasAnyRole('COMPANY', 'BANK')")
   @GetMapping("/purchases-by-specific-state")
-  public ResponseEntity<?> getPurchasesBySpecificState(HttpServletRequest request, @RequestParam(required = false) StateEnum state) {
+  public ResponseEntity<?> getPurchasesBySpecificState(HttpServletRequest request,
+      @RequestParam(required = false) StateEnum state) {
+
     try {
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);
@@ -75,10 +84,12 @@ public class PurchaseController {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
   }
-  
+
   @PreAuthorize("hasRole('BANK')")
   @PostMapping("/pay-purchase")
-  public ResponseEntity<ResponseDTO> payDocument(HttpServletRequest request, @RequestParam Long purchaseId) {
+  public ResponseEntity<ResponseDTO> payDocument(HttpServletRequest request,
+      @RequestParam Long purchaseId) {
+
     try {
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);

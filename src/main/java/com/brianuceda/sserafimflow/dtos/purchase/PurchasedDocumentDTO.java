@@ -1,5 +1,7 @@
-package com.brianuceda.sserafimflow.dtos;
+package com.brianuceda.sserafimflow.dtos.purchase;
 
+import com.brianuceda.sserafimflow.dtos.BankDTO;
+import com.brianuceda.sserafimflow.dtos.DocumentDTO;
 import com.brianuceda.sserafimflow.entities.PurchaseEntity;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.StateEnum;
@@ -11,8 +13,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +24,7 @@ public class PurchasedDocumentDTO {
   private Long id;
 
   private LocalDate purchaseDate;
-  private LocalDateTime payDate;
+  private LocalDate payDate;
 
   private CurrencyEnum currency;
   private BigDecimal nominalValue;
@@ -44,12 +46,12 @@ public class PurchasedDocumentDTO {
     this.payDate = purchase.getPayDate();
     this.currency = purchase.getCurrency();
     this.nominalValue = purchase.getNominalValue();
-    this.discountRate = purchase.getDiscountRate();
+    this.discountRate = purchase.getDiscountRate().multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP);
     this.receivedValue = purchase.getReceivedValue();
     this.days = purchase.getDays();
-    this.tep = purchase.getTep();
+    this.tep = purchase.getTep().multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP);
     this.rateType = purchase.getRateType();
-    this.rateValue = purchase.getRateValue();
+    this.rateValue = purchase.getRateValue().multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP);
     this.state = purchase.getState();
 
     this.bank = new BankDTO(

@@ -95,6 +95,21 @@ public class DocumentController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
+  @DeleteMapping("/delete/{documentId}")
+  public ResponseEntity<?> deleteDocument(HttpServletRequest request, @PathVariable Long documentId) {
+    try {
+      // Obtener el token y el nombre de usuario
+      String token = jwtUtils.getTokenFromRequest(request);
+      String username = jwtUtils.getUsernameFromToken(token);
+
+      // Llamar al servicio para eliminar el documento
+      return new ResponseEntity<>(this.documentImpl.deleteDocument(username, documentId), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PreAuthorize("hasRole('COMPANY')")
   @PutMapping("/edit")
   public ResponseEntity<?> updateDocument(HttpServletRequest request, @RequestBody DocumentDTO documentDTO) {
     try {

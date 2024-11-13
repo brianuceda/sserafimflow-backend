@@ -24,11 +24,14 @@ public interface CompanyRepository extends JpaRepository<CompanyEntity, Long> {
           d.document_type AS documentType,
           p.rate_type AS rateType,
           p.currency AS currency,
+          b.real_name AS bankRealName,
           EXTRACT(MONTH FROM p.purchase_date) AS month
       FROM
           purchase p
       JOIN
           document d ON p.document_id = d.id
+      JOIN
+          bank b ON p.bank_id = b.id
       WHERE
           d.company_id = :companyId
           AND p.state = 'PAID'

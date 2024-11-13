@@ -99,6 +99,23 @@ public class DocumentService implements DocumentImpl {
 
   @Override
   @Transactional
+  public ResponseDTO deleteDocument(String username, Long documentId) {
+    CompanyEntity company = companyRepository.findByUsername(username)
+        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+
+    DocumentEntity document = documentRepository.findById(documentId)
+        .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado"));
+
+    if (!document.getCompany().getId().equals(company.getId())) {
+      throw new IllegalArgumentException("Recurso protegido");
+    }
+
+    documentRepository.delete(document);
+    return new ResponseDTO("Documento eliminado con éxito");
+  }
+
+  @Override
+  @Transactional
   public ResponseDTO createDocument(String username, DocumentDTO documentDTO) {
 
     // Buscar la compañía

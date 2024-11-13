@@ -16,7 +16,7 @@ public class CompanyDashboard {
   private BigDecimal totalNominalValueIssued;
   private BigDecimal totalNominalValueReceived;
   private BigDecimal totalNominalValueDiscounted;
-  private Integer pendingPortfoliosToPay;
+  private String mostUsedBankForSales;
   private RateTypeEnum mostUsedPeriodRate;
   private CurrencyEnum mostUsedCurrency;
   private List<Integer> cantSoldLettersPerMonth;
@@ -31,7 +31,7 @@ public class CompanyDashboard {
     this.totalNominalValueIssued = new BigDecimal(0);
     this.totalNominalValueReceived = new BigDecimal(0);
     this.totalNominalValueDiscounted = new BigDecimal(0);
-    this.pendingPortfoliosToPay = 0;
+    this.mostUsedBankForSales = "?";
     this.cantSoldLettersPerMonth = new ArrayList<>();
     this.cantSoldInvoicesPerMonth = new ArrayList<>();
     this.amountSoldLettersPerMonth = new ArrayList<>();

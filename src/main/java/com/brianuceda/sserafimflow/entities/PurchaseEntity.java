@@ -5,9 +5,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-import com.brianuceda.sserafimflow.dtos.PurchasedDocumentDTO;
+import com.brianuceda.sserafimflow.dtos.purchase.PurchasedDocumentDTO;
 import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.enums.StateEnum;
 import com.brianuceda.sserafimflow.enums.RateTypeEnum;
@@ -27,7 +26,7 @@ public class PurchaseEntity {
   private LocalDate purchaseDate; // Fecha de compra
 
   @Column(nullable = true)
-  private LocalDateTime payDate; // Fecha de pago
+  private LocalDate payDate; // Fecha de cobro
 
   @Column(nullable = false)
   @Enumerated(EnumType.STRING)

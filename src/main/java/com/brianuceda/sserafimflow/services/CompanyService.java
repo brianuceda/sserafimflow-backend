@@ -4,10 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -71,7 +69,7 @@ public class CompanyService implements CompanyImpl {
     BigDecimal totalNominalValueDiscounted = BigDecimal.ZERO;
     Map<String, Integer> currencyCount = new HashMap<>();
     Map<String, Integer> rateTypeCount = new HashMap<>();
-    Set<Long> pendingPortfolios = new HashSet<>();
+    Map<String, Integer> bankCount = new HashMap<>();
 
     for (Tuple purchase : purchases) {
       BigDecimal nominalValue = (BigDecimal) purchase.get("nominalValue");
@@ -79,6 +77,7 @@ public class CompanyService implements CompanyImpl {
       BigDecimal discountedValue = (BigDecimal) purchase.get("discountedValue");
       CurrencyEnum fromCurrency = CurrencyEnum.valueOf(purchase.get("currency", String.class));
       RateTypeEnum rateType = RateTypeEnum.valueOf(purchase.get("rateType", String.class));
+      String bankRealName = purchase.get("bankRealName", String.class);
 
       // Convertir cada valor a la moneda objetivo
       nominalValue = purchaseUtils.convertCurrency(nominalValue, fromCurrency, targetCurrency, exchangeRateDTO);
@@ -93,14 +92,16 @@ public class CompanyService implements CompanyImpl {
       // Contar las divisas y tipos de tasa
       currencyCount.put(fromCurrency.name(), currencyCount.getOrDefault(fromCurrency.name(), 0) + 1);
       rateTypeCount.put(rateType.name(), rateTypeCount.getOrDefault(rateType.name(), 0) + 1);
+
+      // Contar la frecuencia del banco
+      bankCount.put(bankRealName, bankCount.getOrDefault(bankRealName, 0) + 1);
     }
 
     dashboard.setTotalNominalValueIssued(totalNominalValueIssued);
     dashboard.setTotalNominalValueReceived(totalNominalValueReceived);
     dashboard.setTotalNominalValueDiscounted(totalNominalValueDiscounted);
 
-    dashboard.setPendingPortfoliosToPay(pendingPortfolios.size());
-
+    // Encontrar las tasas más usadas
     String mostUsedRateType = rateTypeCount.entrySet().stream()
         .max(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
@@ -110,9 +111,16 @@ public class CompanyService implements CompanyImpl {
         .max(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
         .orElse(null);
+      
+    // Encontrar el banco más usado
+    String mostUsedBankRealName = bankCount.entrySet().stream()
+      .max(Map.Entry.comparingByValue())
+      .map(Map.Entry::getKey)
+      .orElse(null);
 
     dashboard.setMostUsedPeriodRate(RateTypeEnum.valueOf(mostUsedRateType));
     dashboard.setMostUsedCurrency(CurrencyEnum.valueOf(mostUsedCurrency));
+    dashboard.setMostUsedBankForSales(mostUsedBankRealName);
   }
 
   private void accumulateMonthlyData(CompanyDashboard dashboard, Long companyId, CurrencyEnum targetCurrency,
@@ -210,23 +218,6 @@ public class CompanyService implements CompanyImpl {
     }
 
     companyRepository.save(company);
-
-    // // Mensaje de respuesta
-    // String message;
-    // if (fieldsUpdated.isEmpty()) {
-    //   message = "Nada que actualizar!";
-    // } else if (fieldsUpdated.size() == 1) {
-    //   switch (fieldsUpdated.get(0)) {
-    //     case "realName" -> message = "Nombre actualizado correctamente!";
-    //     case "ruc" -> message = "RUC actualizado correctamente!";
-    //     case "username" -> message = "Email actualizado correctamente!";
-    //     case "mainCurrency" -> message = "Moneda principal y balance actualizados!";
-    //     case "previewDataCurrency" -> message = "Moneda de previsualización actualizada!";
-    //     default -> message = "Campo actualizado correctamente!";
-    //   }
-    // } else {
-    //   message = "Datos actualizados correctamente!";
-    // }
 
     return new CompanyDTO(company, false);
   }
