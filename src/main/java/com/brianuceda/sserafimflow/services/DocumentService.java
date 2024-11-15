@@ -110,6 +110,10 @@ public class DocumentService implements DocumentImpl {
       throw new IllegalArgumentException("Recurso protegido");
     }
 
+    if (document.getState().equals(StateEnum.PENDING) || document.getState().equals(StateEnum.PAID)) {
+      throw new IllegalArgumentException("No se puede eliminar un documento vendido");
+    }
+
     documentRepository.delete(document);
     return new ResponseDTO("Documento eliminado con éxito");
   }
@@ -160,6 +164,10 @@ public class DocumentService implements DocumentImpl {
     // Verificar que el documento pertenece a la empresa
     if (!document.getCompany().getId().equals(company.getId())) {
       throw new IllegalArgumentException("No tiene permiso para editar este documento");
+    }
+
+    if (document.getState().equals(StateEnum.PENDING) || document.getState().equals(StateEnum.PAID)) {
+      throw new IllegalArgumentException("No se puede editar un documento vendido");
     }
 
     // Lista de campos actualizados

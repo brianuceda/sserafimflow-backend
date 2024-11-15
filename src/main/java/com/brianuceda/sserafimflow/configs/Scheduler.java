@@ -23,7 +23,7 @@ public class Scheduler {
   // Tareas automatizadas
   // 1 minuto: 60000
   // 5 segundos: 5000
-  @Scheduled(fixedRate = 60000)
+  @Scheduled(fixedRate = 5000)
   private void autoPayPurchases() {
     this.purchaseImpl.tryToBuyByPurchaseDate();
   }
