@@ -80,6 +80,23 @@ public class DocumentController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
+  @GetMapping("/documents-not-in-portfolio")
+  public ResponseEntity<?> getAllDocumentsExceptingPortfolioId(HttpServletRequest request,
+      @RequestParam(required = true) Long portfolioId) {
+    
+    try {
+      String token = this.jwtUtils.getTokenFromRequest(request);
+      String username = this.jwtUtils.getUsernameFromToken(token);
+
+      List<DocumentDTO> documents = documentImpl.getAllDocumentsExceptingPortfolioId(username, portfolioId);
+
+      return new ResponseEntity<>(documents, HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PreAuthorize("hasRole('COMPANY')")
   @GetMapping("/{id}")
   public ResponseEntity<?> getDocumentById(HttpServletRequest request, @PathVariable Long id) {
     try {

@@ -20,8 +20,10 @@ import com.brianuceda.sserafimflow.respositories.DocumentRepository;
 import com.brianuceda.sserafimflow.respositories.PortfolioRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.java.Log;
 
 @Service
+@Log
 public class PortfolioService implements PortfolioImpl {
   private final CompanyRepository companyRepository;
   private final PortfolioRepository portfolioRepository;
@@ -43,7 +45,19 @@ public class PortfolioService implements PortfolioImpl {
         .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
     List<PortfolioEntity> portfolios = portfolioRepository.findAllByCompanyId(company.getId());
-    return portfolios.stream().map(PortfolioDTO::new).collect(Collectors.toList());
+    
+    List<PortfolioDTO> portfolioDTOs = new ArrayList<>();
+
+    for (PortfolioEntity portfolio : portfolios) {
+      PortfolioDTO portfolioDTO = new PortfolioDTO(portfolio);
+      portfolioDTO.addDocuments(portfolio.getDocuments());
+      portfolioDTOs.add(portfolioDTO);
+    }
+
+    // Ordenar ascendentemente por id
+    portfolioDTOs.sort((p1, p2) -> p1.getId().compareTo(p2.getId()));
+
+    return portfolioDTOs;
   }
 
   @Override
@@ -169,6 +183,17 @@ public class PortfolioService implements PortfolioImpl {
     // Eliminar portafolio
     portfolioRepository.delete(portfolio);
     return new ResponseDTO("Cartera eliminada con éxito");
+  }
+
+  @Override
+  @Transactional
+  public ResponseDTO updatePortfolio(String username, PortfolioDTO portfolioDTO) {
+    PortfolioEntity portfolio = this.getPortfolioForCompany(username, portfolioDTO.getId());
+
+    portfolio.setName(portfolioDTO.getName());
+    portfolioRepository.save(portfolio);
+
+    return new ResponseDTO("Cartera actualizada con éxito");
   }
 
   private PortfolioEntity getPortfolioForCompany(String username, Long portfolioId) {

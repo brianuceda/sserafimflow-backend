@@ -82,6 +82,7 @@ public class CompanyController {
     }
   }
 
+  @PreAuthorize("hasRole('COMPANY')")
   @PutMapping("/update-profile")
   public ResponseEntity<?> updateCompanyProfile(HttpServletRequest request, @RequestBody CompanyDTO companyDTO) {
     try {

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import com.brianuceda.sserafimflow.dtos.DocumentDTO;
@@ -45,6 +46,23 @@ public class DocumentService implements DocumentImpl {
     }
 
     // Convertir a DTO y retornar
+    return this.convertEntityListToDTOList(documents);
+  }
+
+  @Override
+  public List<DocumentDTO> getAllDocumentsExceptingPortfolioId(String username, Long portfolioId) {
+    CompanyEntity company = companyRepository.findByUsername(username)
+        .orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+    
+    List<DocumentEntity> documents = company.getDocuments();
+
+    documents = documents.stream()
+        .filter(document -> 
+            document.getPortfolio() == null || // No pertenece a ningún portafolio
+            document.getPortfolio().getId().equals(portfolioId) // Pertenece al portafolio especificado
+        )
+        .collect(Collectors.toList());
+
     return this.convertEntityListToDTOList(documents);
   }
 

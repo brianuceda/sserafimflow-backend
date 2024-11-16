@@ -3,16 +3,20 @@ package com.brianuceda.sserafimflow.controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.dtos.portfolio.ChangeDocumentsInPortfolioDTO;
 import com.brianuceda.sserafimflow.dtos.portfolio.CreatePortfolioDTO;
+import com.brianuceda.sserafimflow.dtos.portfolio.PortfolioDTO;
 import com.brianuceda.sserafimflow.implementations.PortfolioImpl;
 import com.brianuceda.sserafimflow.utils.JwtUtils;
 
@@ -66,6 +70,10 @@ public class PortfolioController {
       @RequestBody CreatePortfolioDTO createPortfolioDTO) {
     
     try {
+      if (createPortfolioDTO.getName().length() > 100) {
+        throw new IllegalArgumentException("El nombre es demasiado largo");
+      }
+
       String token = this.jwtUtils.getTokenFromRequest(request);
       String username = this.jwtUtils.getUsernameFromToken(token);
       
@@ -76,7 +84,7 @@ public class PortfolioController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
-  @PostMapping("/change-documents-of-portfolio")
+  @PutMapping("/change-documents-of-portfolio")
   public ResponseEntity<?> changeDocumentsOfPortfolio(HttpServletRequest request,
       @RequestBody ChangeDocumentsInPortfolioDTO changesPortfolioDTO) {
 
@@ -91,7 +99,7 @@ public class PortfolioController {
   }
 
   @PreAuthorize("hasRole('COMPANY')")
-  @PostMapping("/remove-portfolio")
+  @DeleteMapping("/remove-portfolio")
   public ResponseEntity<?> removePortfolio(HttpServletRequest request,
       @RequestParam(required = true) Long portfolioId) {
 
@@ -100,6 +108,20 @@ public class PortfolioController {
       String username = this.jwtUtils.getUsernameFromToken(token);
       
       return new ResponseEntity<>(this.portfolioImpl.removePortfolio(username, portfolioId), HttpStatus.OK);
+    } catch (IllegalArgumentException ex) {
+      return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @PreAuthorize("hasRole('COMPANY')")
+  @PutMapping("/update-portfolio")
+  public ResponseEntity<?> updatePortfolio(HttpServletRequest request,
+      @RequestBody PortfolioDTO portfolioDTO) {
+    try {
+      String token = jwtUtils.getTokenFromRequest(request);
+      String username = jwtUtils.getUsernameFromToken(token);
+
+      return new ResponseEntity<>(this.portfolioImpl.updatePortfolio(username, portfolioDTO), HttpStatus.OK);
     } catch (IllegalArgumentException ex) {
       return new ResponseEntity<>(new ResponseDTO(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }

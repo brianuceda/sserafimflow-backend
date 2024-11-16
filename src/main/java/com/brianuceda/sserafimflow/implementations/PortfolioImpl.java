@@ -13,4 +13,5 @@ public interface PortfolioImpl {
   ResponseDTO createPortfolio(String username, CreatePortfolioDTO createPortfolioDTO);
   ResponseDTO changeDocumentsOfPortfolio(String username, ChangeDocumentsInPortfolioDTO changesPortfolioDTO);
   ResponseDTO removePortfolio(String username, Long portfolioId);
+  ResponseDTO updatePortfolio(String username, PortfolioDTO portfolioDTO);
 }
