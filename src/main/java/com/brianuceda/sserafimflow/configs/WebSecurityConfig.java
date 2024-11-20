@@ -29,6 +29,7 @@ public class WebSecurityConfig {
   private Boolean isProduction;
 
   private final String[] ALLOWED_ORIGINS = {
+    "https://noriainterior.vercel.app",
     "https://sserafimflow.vercel.app",
     "http://localhost:4200"
   };
