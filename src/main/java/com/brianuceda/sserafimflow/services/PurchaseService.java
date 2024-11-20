@@ -113,7 +113,8 @@ public class PurchaseService implements PurchaseImpl {
 
     // Crear la compra
     PurchaseEntity purchase = PurchaseEntity.builder()
-        .purchaseDate(document.getDiscountDate())
+        .purchaseDate(LocalDate.now())
+        .payDate(document.getDiscountDate())
         .currency(bank.getMainCurrency())
         .nominalValue(nominalValue)
         .discountRate(discountRate)
@@ -348,7 +349,6 @@ public class PurchaseService implements PurchaseImpl {
 
     // Cambiar estados
     purchase.getDocument().setState(StateEnum.PAID);
-    purchase.setPayDate(LocalDate.now());
     purchase.setState(StateEnum.PAID);
 
     // Guardar cambios
