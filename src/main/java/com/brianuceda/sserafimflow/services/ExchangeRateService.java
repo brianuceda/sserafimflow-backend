@@ -35,6 +35,15 @@ public class ExchangeRateService implements ExchangeRateImpl {
 
   @Override
   @Transactional
+  public void setTodayExchangeRate() {
+    ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findById(1L).orElse(null);
+    exchangeRateEntity.setDate(LocalDate.now());
+
+    this.exchangeRateRepository.save(exchangeRateEntity);
+  }
+
+  @Override
+  @Transactional
   public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
     LocalDate currentDate = LocalDate.now();
 

@@ -1,9 +1,13 @@
 package com.brianuceda.sserafimflow.configs;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 import com.brianuceda.sserafimflow.implementations.PurchaseImpl;
 
 import lombok.extern.java.Log;
@@ -15,9 +19,11 @@ public class Scheduler {
   private Boolean isProduction;
 
   private final PurchaseImpl purchaseImpl;
+  private final ExchangeRateImpl exchangeRateImpl;
 
-  public Scheduler(PurchaseImpl purchaseImpl) {
+  public Scheduler(PurchaseImpl purchaseImpl, ExchangeRateImpl exchangeRateImpl) {
     this.purchaseImpl = purchaseImpl;
+    this.exchangeRateImpl = exchangeRateImpl;
   }
 
   // Tareas automatizadas
@@ -30,23 +36,21 @@ public class Scheduler {
 
   // 1 minuto: 60000
   // 1 hora: 3600000
-  // @Scheduled(fixedRate = 3600000)
-  // private void autoSaveTodayExchangeRates() {
-  // LocalDateTime now = LocalDateTime.now();
-  // int[] range = { 1, 3 };
-  //
-  // // Si la fecha actual está entre las 1:00 am y las 3:00 am
-  // if (now.getHour() >= range[0] && now.getHour() < range[1]) {
-  // // formato dd-mm-yyyy
-  // log.info("Guardando el tipo de cambio del dia " +
-  // now.toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
-  // this.exchangeRateImpl.getTodayExchangeRate();
-  // } else {
-  // String message = "La hora actual es " + now.getHour() + " " + (now.getHour()
-  // < 12 ? "am" : "pm") + " y no se encuentra dentro del rango de ";
-  // message += "[" + range[0] + " a " + range[1] + "] " + (range[1] < 12 ? "am" :
-  // "pm");
-  // log.info(message);
-  // }
-  // }
+  @Scheduled(fixedRate = 3600000)
+  private void autoSaveTodayExchangeRates() {
+    LocalDateTime now = LocalDateTime.now();
+    int[] range = { 1, 3 };
+
+    // Si la fecha actual está entre las 1:00 am y las 3:00 am
+    if (now.getHour() >= range[0] && now.getHour() < range[1]) {
+      // formato dd-mm-yyyy
+      log.info("Actualizando el tipo de cambio del dia " + now.toLocalDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+      this.exchangeRateImpl.setTodayExchangeRate();
+    } else {
+      // String message = "La hora actual es " + now.getHour() + " " + (now.getHour() < 12 ? "am" : "pm")
+      //     + " y no se encuentra dentro del rango de ";
+      // message += "[" + range[0] + " a " + range[1] + "] " + (range[1] < 12 ? "am" : "pm");
+      // log.info(message);
+    }
+  }
 }
