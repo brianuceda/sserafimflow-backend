@@ -369,10 +369,9 @@ public class PurchaseService implements PurchaseImpl {
   public void tryToBuyByPurchaseDate() {
     List<PurchaseEntity> purchases = purchaseRepository.findAllByState(StateEnum.PENDING);
 
-    log.info("Cantidad de compras pendientes de pago: " + purchases.size());
+    // log.info("Cantidad de compras pendientes de pago: " + purchases.size());
 
-    // Realiza el pago si la fecha de descuento es igual o anterior a la fecha
-    // actual
+    // Realiza el pago si la fecha de descuento es igual o anterior a la fecha actual
     for (PurchaseEntity purchase : purchases) {
       if (purchase.getDocument().getDiscountDate() != null &&
           !purchase.getDocument().getDiscountDate().isAfter(LocalDate.now())) {
