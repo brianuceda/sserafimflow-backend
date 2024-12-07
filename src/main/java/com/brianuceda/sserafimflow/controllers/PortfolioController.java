@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.brianuceda.sserafimflow.dtos.CompanyDTO;
 import com.brianuceda.sserafimflow.dtos.ResponseDTO;
 import com.brianuceda.sserafimflow.dtos.portfolio.ChangeDocumentsInPortfolioDTO;
 import com.brianuceda.sserafimflow.dtos.portfolio.CreatePortfolioDTO;

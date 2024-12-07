@@ -9,6 +9,7 @@ import com.brianuceda.sserafimflow.entities.BankEntity;
 
 @Repository
 public interface BankRepository extends JpaRepository<BankEntity, Long> {
+  @SuppressWarnings("null")
   Optional<BankEntity> findById(Long id);
   Optional<BankEntity> findByUsername(String username);
 }

@@ -1,11 +1,13 @@
 package com.brianuceda.sserafimflow.services;
 
 import java.util.List;
+import java.util.Map;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
 import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
@@ -15,7 +17,6 @@ import com.brianuceda.sserafimflow.enums.CurrencyEnum;
 import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed;
 import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 import com.brianuceda.sserafimflow.respositories.ExchangeRateRepository;
-import com.brianuceda.sserafimflow.utils.SeleniumUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -26,11 +27,9 @@ import java.math.BigDecimal;
 public class ExchangeRateService implements ExchangeRateImpl {
 
   private final ExchangeRateRepository exchangeRateRepository;
-  private final SeleniumUtils seleniumUtils;
 
-  public ExchangeRateService(ExchangeRateRepository exchangeRateRepository, SeleniumUtils seleniumUtils) {
+  public ExchangeRateService(ExchangeRateRepository exchangeRateRepository) {
     this.exchangeRateRepository = exchangeRateRepository;
-    this.seleniumUtils = seleniumUtils;
   }
 
   @Override
@@ -52,8 +51,8 @@ public class ExchangeRateService implements ExchangeRateImpl {
 
     // Si no existe en la BD
     if (exchangeRateEntity == null) {
-      // Obtener de la página de la SBS
-      exchangeRateDTO = this.getExchangeRateFromSbsPage(currentDate);
+      // Obtener de la API de Magin Loops
+      exchangeRateDTO = this.getExchangeRateFromMaginLoopsAPI(currentDate);
 
       // Asignar relaciones
       exchangeRateEntity = new ExchangeRateEntity(exchangeRateDTO);
@@ -72,63 +71,54 @@ public class ExchangeRateService implements ExchangeRateImpl {
     return exchangeRateDTO;
   }
 
-  private ExchangeRateDTO getExchangeRateFromSbsPage(LocalDate currentDate) throws ConnectionFailed {
-    ThreadLocal<RemoteWebDriver> driver = new ThreadLocal<>();
+  private ExchangeRateDTO getExchangeRateFromMaginLoopsAPI(LocalDate currentDate) {
+    String apiUrl = "https://magicloops.dev/api/loop/68aa0b17-0dea-4ec8-8a13-d31e80d65ff8/run?input=I+love+Magic+Loops%21";
 
     try {
-      seleniumUtils.setUp(driver);
-      driver.get().get("https://www.sbs.gob.pe/app/pp/sistip_portal/paginas/publicacion/tipocambiopromedio.aspx");
+      // Crear una instancia de RestTemplate para llamar a la API
+      RestTemplate restTemplate = new RestTemplate();
 
-      // Esperar a que cargue el contenido
-      SeleniumUtils.waitUntilTextChanges(driver.get(), By.className("APLI_contenidoInterno"));
+      // Especificar el tipo genérico esperado para la respuesta
+      ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {
+      };
 
-      // Extraer las filas de la tabla usando un XPath apropiado
-      List<WebElement> rows = driver.get()
-          .findElements(By.xpath("//table[@id='ctl00_cphContent_rgTipoCambio_ctl00']/tbody/tr"));
+      // Llamar a la API y obtener la respuesta
+      ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(
+          apiUrl, HttpMethod.GET, null, responseType);
+      Map<String, Object> responseBody = responseEntity.getBody();
 
+      // Extraer y mapear los datos de la respuesta
       ExchangeRateDTO exchangeRateDTO = new ExchangeRateDTO();
       exchangeRateDTO.setDate(currentDate);
 
-      for (WebElement row : rows) {
-        List<WebElement> cells = row.findElements(By.tagName("td"));
-        String currencyCell = cells.get(0).getText().trim();
+      if (responseBody == null || !responseBody.containsKey("currencyRates")) {
+        throw new ConnectionFailed("Invalid response from Magin Loops API");
+      }
 
-        CurrencyEnum currency = null;
+      Object currencyRatesObj = responseBody.get("currencyRates");
 
-        if (currencyCell.equals("Dólar de N.A.")) {
-          currency = CurrencyEnum.USD;
-        } else if (currencyCell.equals("Dólar Canadiense")) {
-          currency = CurrencyEnum.CAD;
-        } else if (currencyCell.equals("Euro")) {
-          currency = CurrencyEnum.EUR;
-        } else {
-          continue;
-        }
+      if (!(currencyRatesObj instanceof List<?>)) {
+        throw new ConnectionFailed("Unexpected format for currencyRates in API response");
+      }
 
-        String purchasePriceStr = cells.get(1).getText().trim().isEmpty() ? null : cells.get(1).getText().trim();
-        String salePriceStr = cells.get(2).getText().trim().isEmpty() ? null : cells.get(2).getText().trim();
+      @SuppressWarnings("unchecked")
+      List<Map<String, Object>> currencyRates = (List<Map<String, Object>>) currencyRatesObj;
 
-        BigDecimal purchasePriceBD = purchasePriceStr == null ? null : new BigDecimal(purchasePriceStr);
-        BigDecimal salePriceBD = salePriceStr == null ? null : new BigDecimal(salePriceStr);
+      for (Map<String, Object> rate : currencyRates) {
+        String currencyCode = (String) rate.get("currency");
+        CurrencyEnum currencyEnum = CurrencyEnum.valueOf(currencyCode);
+        BigDecimal purchasePrice = new BigDecimal((String) rate.get("purchasePrice"));
+        BigDecimal salePrice = new BigDecimal((String) rate.get("salePrice"));
+        String currencyName = (String) rate.get("currencyName");
 
-        if (purchasePriceBD == null || salePriceBD == null) {
-          continue;
-        }
-
-        CurrencyRateDTO currencyRateDTO = new CurrencyRateDTO(currency, purchasePriceBD, salePriceBD);
-
+        CurrencyRateDTO currencyRateDTO = new CurrencyRateDTO(currencyName, currencyEnum, purchasePrice, salePrice);
         exchangeRateDTO.getCurrencyRates().add(currencyRateDTO);
       }
-      
-      // Asignar nombres rales a las monedas
-      exchangeRateDTO.assingCurrencyNames();
 
       return exchangeRateDTO;
+
     } catch (Exception ex) {
-      throw new ConnectionFailed(ex.getMessage());
-    } finally {
-      seleniumUtils.closeBrowser(driver);
+      throw new ConnectionFailed("Error fetching data from Magin Loops API: " + ex.getMessage());
     }
   }
-
 }
