@@ -1,4 +1,19 @@
-a partir de acá, todo es para acabar el tf, nada más.
+# PostgreSQL Database Configuration
+export SF_POSTGRES_DB=
+export POSTGRES_USER=
+export POSTGRES_PASSWORD=
+
+# AWS Configuration
+export AWS_ACCESS_KEY=
+export AWS_SECRET_KEY=
+export AWS_REGION=
+export SF_S3_BUCKET_NAME=
+
+# JWT Configuration
+export JWT_SECRET_KEY=
+export JWT_EXP_TIME=
+
+---
 
 ## Tasas de Cambio
 `¿Qué le está pasando a la moneda principal?`
