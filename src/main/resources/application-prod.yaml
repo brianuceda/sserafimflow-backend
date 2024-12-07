@@ -5,7 +5,7 @@ spring:
   # main:
   #   allow-bean-definition-overriding: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: ${SF_SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -37,7 +37,7 @@ cloud:
 
 application:
   bucket:
-    name: ${S3_BUCKET_NAME}
+    name: ${SF_S3_BUCKET_NAME}
 
 IS_PRODUCTION: true
 
