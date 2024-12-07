@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Log
 @RestController
-@RequestMapping("/api/v1/sf/auth/bank")
+@RequestMapping("/api/v1/auth/bank")
 public class _AuthBankController {
   @Value("${IS_PRODUCTION}")
   private boolean isProduction;

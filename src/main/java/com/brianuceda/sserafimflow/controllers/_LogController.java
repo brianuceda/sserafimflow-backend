@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.brianuceda.sserafimflow.enums.LogType;
 
 @RestController
-@RequestMapping("/api/v1/sf/logs")
+@RequestMapping("/api/v1/logs")
 public class _LogController {
   @Value("${IS_PRODUCTION}")
   private Boolean isProduction;

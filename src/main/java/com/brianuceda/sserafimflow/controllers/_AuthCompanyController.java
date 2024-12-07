@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Log
 @RestController
-@RequestMapping("/api/v1/sf/auth/company")
+@RequestMapping("/api/v1/auth/company")
 public class _AuthCompanyController {
   @Value("${IS_PRODUCTION}")
   private boolean isProduction;
