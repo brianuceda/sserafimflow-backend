@@ -10,7 +10,7 @@ import com.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 
 @RestController
-@RequestMapping("/api/v1/exchange-rate")
+@RequestMapping("/api/v1/sf/exchange-rate")
 public class ExchangeRateController {
   private final ExchangeRateImpl exchangeRateImpl;
 

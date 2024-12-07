@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 
 @RestController
-@RequestMapping("/api/v1/bank")
+@RequestMapping("/api/v1/sf/bank")
 @Log
 public class BankController {
   private final JwtUtils jwtUtils;

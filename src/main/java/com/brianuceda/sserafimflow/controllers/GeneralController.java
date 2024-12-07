@@ -13,7 +13,7 @@ import com.brianuceda.sserafimflow.exceptions.GeneralExceptions.ConnectionFailed
 import com.brianuceda.sserafimflow.implementations.ExchangeRateImpl;
 
 @RestController
-@RequestMapping("/api/v1/general")
+@RequestMapping("/api/v1/sf/general")
 public class GeneralController {
   private final ExchangeRateImpl exchangeRateImpl;
 

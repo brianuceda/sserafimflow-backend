@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/api/v1/purchase")
+@RequestMapping("/api/v1/sf/purchase")
 public class PurchaseController {
   private final JwtUtils jwtUtils;
   private final PurchaseImpl purchaseImpl;

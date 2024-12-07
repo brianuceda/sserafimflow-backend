@@ -64,8 +64,7 @@ public class WebSecurityConfig {
           return configuration;
         }))
         .authorizeHttpRequests(authRequest -> {
-          authRequest.requestMatchers("/api/v1/auth/**").permitAll();
-          authRequest.requestMatchers("/api/v1/logs/**").permitAll();
+          authRequest.requestMatchers("/api/v1/sf/auth/**").permitAll();
           authRequest.requestMatchers("/ws/**").permitAll();
           authRequest.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**").permitAll();
           

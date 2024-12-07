@@ -18,7 +18,7 @@ import com.brianuceda.sserafimflow.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/v1/document")
+@RequestMapping("/api/v1/sf/document")
 public class DocumentController {
   private final DocumentImpl documentImpl;
   private final JwtUtils jwtUtils;

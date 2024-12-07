@@ -24,7 +24,7 @@ import lombok.extern.java.Log;
 
 @Log
 @RestController
-@RequestMapping("/api/v1/portfolio")
+@RequestMapping("/api/v1/sf/portfolio")
 public class PortfolioController {
   private final JwtUtils jwtUtils;
   private final PortfolioImpl portfolioImpl;
