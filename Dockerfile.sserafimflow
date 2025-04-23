@@ -1,0 +1,28 @@
+# Etapa de construcción
+FROM maven:3.9.3-eclipse-temurin-17 AS build
+
+WORKDIR /build
+
+# Copiar el pom.xml y los fuentes
+COPY pom.xml .
+COPY src ./src/
+
+# Construir la aplicación
+RUN mvn -f pom.xml clean package -DskipTests
+
+# Etapa de ejecución
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copiar el JAR de la etapa de construcción
+COPY --from=build /build/target/sserafimflow-0.0.1-SNAPSHOT.jar /app/app.jar
+
+# Exponer el puerto
+EXPOSE 8080
+
+# Agregar health check (requiere Spring Boot Actuator)
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://localhost:8080/actuator/health || exit 1
+
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

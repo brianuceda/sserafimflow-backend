@@ -1,13 +1,8 @@
-server:
-    port: 8080
-    
 spring:
-  # main:
-  #   allow-bean-definition-overriding: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:postgresql://${SSERAFIMFLOW_POSTGRES_HOST}:${SSERAFIMFLOW_POSTGRES_PORT}/${SSERAFIMFLOW_POSTGRES_DB}?serverTimezone=America/Lima
+    username: ${SSERAFIMFLOW_POSTGRES_USER}
+    password: ${SSERAFIMFLOW_POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maxLifetime: 150000
@@ -28,20 +23,32 @@ spring:
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+      access-key: ${SSERAFIMFLOW_AWS_ACCESS_KEY}
+      secret-key: ${SSERAFIMFLOW_AWS_SECRET_KEY}
     region:
-      static: ${AWS_REGION}
+      static: ${SSERAFIMFLOW_AWS_REGION}
     stack:
       auto: false
 
 application:
   bucket:
-    name: ${S3_BUCKET_NAME}
+    name: ${SSERAFIMFLOW_S3_BUCKET_NAME}
+
+SSERAFIMFLOW_JWT_SECRET_KEY: ${SSERAFIMFLOW_JWT_SECRET_KEY}
+SSERAFIMFLOW_JWT_EXP_TIME: ${SSERAFIMFLOW_JWT_EXP_TIME}
 
 IS_PRODUCTION: true
 
-JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-JWT_EXP_TIME: ${JWT_EXP_TIME}
+logging:
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        security: TRACE
 
-# Swagger: http://localhost:8080/swagger-ui/index.html
+server:
+  port: 8080
