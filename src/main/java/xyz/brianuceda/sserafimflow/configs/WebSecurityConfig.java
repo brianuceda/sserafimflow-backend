@@ -6,12 +6,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,7 +17,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAccessDeniedHandler;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAuthenticationEntryPoint;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAuthenticationFilter;
-import xyz.brianuceda.sserafimflow.services._CustomUserDetailsService;
 import lombok.extern.java.Log;
 
 @Log
@@ -30,8 +27,6 @@ public class WebSecurityConfig {
   @Value("${IS_PRODUCTION}")
   private Boolean isProduction;
 
-  private final PasswordEncoder passwordEncoder;
-
   private final String[] ALLOWED_ORIGINS = {
     "https://sserafimflow.vercel.app",
     "http://localhost:4200"
@@ -40,29 +35,19 @@ public class WebSecurityConfig {
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  
-  private final _CustomUserDetailsService customUserDetailsService;
-
-  @Bean
-  public AuthenticationProvider authenticationProvider() {
-      DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-      provider.setUserDetailsService(customUserDetailsService);
-      provider.setPasswordEncoder(passwordEncoder);
-      return provider;
-  }
+  private final AuthenticationProvider authenticationProvider;
 
   public WebSecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
       JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthenticationFilter jwtAuthenticationFilter,
-      _CustomUserDetailsService customUserDetailsService, PasswordEncoder passwordEncoder) {
+      AuthenticationProvider authenticationProvider) {
     this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    this.customUserDetailsService = customUserDetailsService;
-    this.passwordEncoder = passwordEncoder;
+    this.authenticationProvider = authenticationProvider;
   }
 
   @Bean
-  private SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     return http
         .csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(request -> {
@@ -87,7 +72,7 @@ public class WebSecurityConfig {
           exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint);
           exceptionHandling.accessDeniedHandler(jwtAccessDeniedHandler);
         })
-        .authenticationProvider(authenticationProvider())
+        .authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
