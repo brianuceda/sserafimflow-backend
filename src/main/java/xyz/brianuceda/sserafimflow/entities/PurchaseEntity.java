@@ -11,7 +11,8 @@ import xyz.brianuceda.sserafimflow.enums.CurrencyEnum;
 import xyz.brianuceda.sserafimflow.enums.StateEnum;
 import xyz.brianuceda.sserafimflow.enums.RateTypeEnum;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -83,5 +84,21 @@ public class PurchaseEntity {
     this.rateType = purchaseDTO.getRateType();
     this.rateValue = purchaseDTO.getRateValue();
     this.state = purchaseDTO.getState();
+  }
+  
+  @Override
+  public String toString() {
+    return "PurchaseEntity(id=" + id + 
+           ", purchaseDate=" + purchaseDate + 
+           ", payDate=" + payDate + 
+           ", currency=" + currency + 
+           ", nominalValue=" + nominalValue + 
+           ", discountRate=" + discountRate + 
+           ", receivedValue=" + receivedValue + 
+           ", days=" + days + 
+           ", tep=" + tep + 
+           ", rateType=" + rateType + 
+           ", rateValue=" + rateValue + 
+           ", state=" + state + ")";
   }
 }

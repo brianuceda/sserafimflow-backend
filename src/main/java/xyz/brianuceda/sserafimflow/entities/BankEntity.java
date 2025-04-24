@@ -16,7 +16,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -104,5 +105,24 @@ public class BankEntity implements UserDetails {
   @Override
   public boolean isEnabled() {
     return true;
+  }
+  
+  @Override
+  public String toString() {
+    return "BankEntity(id=" + id + 
+           ", realName=" + realName + 
+           ", ruc=" + ruc + 
+           ", username=" + username + 
+           ", publicUuid=" + publicUuid + 
+           ", imageUrl=" + imageUrl + 
+           ", mainCurrency=" + mainCurrency + 
+           ", previewDataCurrency=" + previewDataCurrency + 
+           ", balance=" + balance + 
+           ", role=" + role + 
+           ", creationDate=" + creationDate + 
+           ", accountCreationDate=" + accountCreationDate + 
+           ", nominalRate=" + nominalRate + 
+           ", effectiveRate=" + effectiveRate + 
+           ", extraCommission=" + extraCommission + ")";
   }
 }

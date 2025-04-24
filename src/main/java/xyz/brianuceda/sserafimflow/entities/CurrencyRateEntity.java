@@ -12,14 +12,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 import xyz.brianuceda.sserafimflow.dtos.CurrencyRateDTO;
 import xyz.brianuceda.sserafimflow.enums.CurrencyEnum;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -49,5 +51,13 @@ public class CurrencyRateEntity {
     this.currency = currencyRateDTO.getCurrency();
     this.purchasePrice = currencyRateDTO.getPurchasePrice();
     this.salePrice = currencyRateDTO.getSalePrice();
+  }
+  
+  @Override
+  public String toString() {
+    return "CurrencyRateEntity(id=" + id + 
+           ", currency=" + currency + 
+           ", purchasePrice=" + purchasePrice + 
+           ", salePrice=" + salePrice + ")";
   }
 }

@@ -9,7 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -19,7 +20,8 @@ import java.util.List;
 import xyz.brianuceda.sserafimflow.dtos.ExchangeRateDTO;
 
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -42,5 +44,11 @@ public class ExchangeRateEntity {
   public ExchangeRateEntity(ExchangeRateDTO exchangeRateDTO) {
     this.date = exchangeRateDTO.getDate();
     this.currencyRates = exchangeRateDTO.getCurrencyRates().stream().map(CurrencyRateEntity::new).toList();
+  }
+  
+  @Override
+  public String toString() {
+    return "ExchangeRateEntity(id=" + id + 
+           ", date=" + date + ")";
   }
 }
