@@ -7,7 +7,7 @@ spring:
     hikari:
       maxLifetime: 150000
   jpa:
-    open-in-view: false
+    open-in-view: true
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect

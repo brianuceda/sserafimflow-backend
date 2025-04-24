@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAccessDeniedHandler;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAuthenticationEntryPoint;
 import xyz.brianuceda.sserafimflow.interceptors.JwtAuthenticationFilter;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import lombok.extern.java.Log;
 
 @Log
@@ -35,15 +35,17 @@ public class WebSecurityConfig {
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
   private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
-  private final AuthenticationProvider authenticationProvider;
-
-  public WebSecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-      JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthenticationFilter jwtAuthenticationFilter,
-      AuthenticationProvider authenticationProvider) {
+  private final UserDetailsService userDetailsService;
+  
+  public WebSecurityConfig(
+      JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+      JwtAccessDeniedHandler jwtAccessDeniedHandler, 
+      JwtAuthenticationFilter jwtAuthenticationFilter,
+      UserDetailsService userDetailsService) {
     this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    this.authenticationProvider = authenticationProvider;
+    this.userDetailsService = userDetailsService;
   }
 
   @Bean
@@ -72,9 +74,9 @@ public class WebSecurityConfig {
           exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint);
           exceptionHandling.accessDeniedHandler(jwtAccessDeniedHandler);
         })
-        .authenticationProvider(authenticationProvider)
+        // Configure UserDetailsService directly instead of AuthenticationProvider
+        .userDetailsService(userDetailsService)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();
   }
-
 }
