@@ -11,7 +11,8 @@ import xyz.brianuceda.sserafimflow.enums.CurrencyEnum;
 import xyz.brianuceda.sserafimflow.enums.StateEnum;
 import xyz.brianuceda.sserafimflow.enums.DocumentTypeEnum;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -72,5 +73,19 @@ public class DocumentEntity {
     this.clientName = documentDTO.getClientName();
     this.clientPhone = documentDTO.getClientPhone();
     this.state = documentDTO.getState();
+  }
+  
+  @Override
+  public String toString() {
+    return "DocumentEntity(id=" + id + 
+           ", documentType=" + documentType + 
+           ", amount=" + amount + 
+           ", currency=" + currency + 
+           ", issueDate=" + issueDate + 
+           ", discountDate=" + discountDate + 
+           ", expirationDate=" + expirationDate + 
+           ", state=" + state + 
+           ", clientName=" + clientName + 
+           ", clientPhone=" + clientPhone + ")";
   }
 }

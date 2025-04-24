@@ -7,7 +7,8 @@ import java.util.List;
 import xyz.brianuceda.sserafimflow.dtos.portfolio.PortfolioDTO;
 import xyz.brianuceda.sserafimflow.enums.StateEnum;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -35,5 +36,12 @@ public class PortfolioEntity {
     this.id = portfolioDTO.getId();
     this.name = portfolioDTO.getName();
     this.state = portfolioDTO.getState();
+  }
+
+  @Override
+  public String toString() {
+    return "PortfolioEntity(id=" + id + 
+           ", name=" + name + 
+           ", state=" + state + ")";
   }
 }
