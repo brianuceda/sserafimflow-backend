@@ -46,11 +46,12 @@ public class ExchangeRateService implements ExchangeRateImpl {
   public ExchangeRateDTO getTodayExchangeRate() throws ConnectionFailed {
     LocalDate currentDate = LocalDate.now();
 
-    ExchangeRateEntity exchangeRateEntity = exchangeRateRepository.findByDate(currentDate);
+    List<ExchangeRateEntity> exchangeRateEntities = exchangeRateRepository.findByDate(currentDate);
     ExchangeRateDTO exchangeRateDTO = null;
+    ExchangeRateEntity exchangeRateEntity = null;
 
-    // Si no existe en la BD
-    if (exchangeRateEntity == null) {
+    // Si no existe en la BD o hay múltiples entradas
+    if (exchangeRateEntities.isEmpty()) {
       // Obtener de la API de Magin Loops
       exchangeRateDTO = this.getExchangeRateFromMaginLoopsAPI(currentDate);
 
@@ -63,7 +64,17 @@ public class ExchangeRateService implements ExchangeRateImpl {
       // Guardar en la BD
       exchangeRateRepository.save(exchangeRateEntity);
     } else {
-      // Si existe en la BD, convertir a DTO para retornar
+      // Si existe en la BD, usar la primera entrada encontrada
+      exchangeRateEntity = exchangeRateEntities.get(0);
+      
+      // Si hay múltiples entradas con la misma fecha, eliminar las duplicadas excepto la primera
+      if (exchangeRateEntities.size() > 1) {
+        for (int i = 1; i < exchangeRateEntities.size(); i++) {
+          exchangeRateRepository.delete(exchangeRateEntities.get(i));
+        }
+      }
+      
+      // Convertir a DTO para retornar
       exchangeRateDTO = new ExchangeRateDTO(exchangeRateEntity);
       exchangeRateDTO.assingCurrencyNames();
     }
