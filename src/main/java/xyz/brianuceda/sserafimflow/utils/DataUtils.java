@@ -49,21 +49,46 @@ public class DataUtils {
     // - Al menos 1 letra minúscula
     // - Al menos 1 letra mayúscula
     // - Al menos 1 número
-    // - Debe contener al menos un carácter especial: !@#$%^&*()-+_=
+    // - Debe contener al menos un carácter especial
     // - No permitir comillas simples o dobles
 
-    password = password.trim();
-
-    // Expresión regular para validar las reglas
-    String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()\\-+_=])[A-Za-z\\d!@#$%^&*()\\-+_=]{6,}$";
-
-    // Validar que la contraseña no contenga comillas simples o dobles
-    if (password.trim().contains("'") || password.trim().contains("\"")) {
-      return false;
+    if (password == null) {
+        return false;
     }
-
-    // Validar si la contraseña cumple con el patrón
-    return password.trim().matches(passwordPattern);
+    
+    password = password.trim();
+    
+    // Validar que la contraseña no contenga comillas simples o dobles
+    if (password.contains("'") || password.contains("\"")) {
+        return false;
+    }
+    
+    // Validar longitud mínima
+    if (password.length() < 6) {
+        return false;
+    }
+    
+    // Validar que contenga al menos una letra minúscula
+    if (!password.matches(".*[a-z].*")) {
+        return false;
+    }
+    
+    // Validar que contenga al menos una letra mayúscula
+    if (!password.matches(".*[A-Z].*")) {
+        return false;
+    }
+    
+    // Validar que contenga al menos un número
+    if (!password.matches(".*\\d.*")) {
+        return false;
+    }
+    
+    // Validar que contenga al menos un carácter especial
+    if (!password.matches(".*[!@#$%^&*()\\-+_=.;:,<>?/\\\\|{}\\[\\]].*")) {
+        return false;
+    }
+    
+    return true;
   }
 
   public static void isSupportedImage(MultipartFile image) {
