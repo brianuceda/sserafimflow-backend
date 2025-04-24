@@ -52,43 +52,57 @@ public class _AuthBankService implements _AuthBankImpl {
   @Override
   @Transactional
   public ResponseDTO register(BankDTO bankDTO, MultipartFile image, Boolean rememberMe) {
-    if (bankRepository.findByUsername(bankDTO.getUsername()).isPresent()) {
-      throw new BadCredentialsException("El banco ya existe");
+    try {
+      if (bankRepository.findByUsername(bankDTO.getUsername()).isPresent()) {
+        throw new BadCredentialsException("El banco ya existe");
+      }
+
+      String publicUuid = UUID.randomUUID().toString();
+      bankDTO.setPublicUuid(publicUuid);
+
+      String imageUrl = null;
+      if (image != null) {
+        try {
+          imageUrl = cloudStorageService.uploadFile(image, publicUuid);
+          bankDTO.setImageUrl(imageUrl);
+        } catch (Exception e) {
+          throw new IllegalArgumentException("Error al subir la imagen: " + e.getMessage());
+        }
+      }
+
+      BankEntity bank = BankEntity.builder()
+          .realName(bankDTO.getRealName())
+          .ruc(bankDTO.getRuc())
+          .username(bankDTO.getUsername())
+          .password(passwordEncoder.encode(bankDTO.getPassword()))
+          .publicUuid(publicUuid)
+          .imageUrl(imageUrl != null ? imageUrl : "https://i.ibb.co/BrwL76K/bank.png")
+          .mainCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
+          .previewDataCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
+          .balance(new BigDecimal(1000000))
+          .role(AuthRoleEnum.BANK)
+          .creationDate(bankDTO.getCreationDate() != null ? bankDTO.getCreationDate() : LocalDate.now())
+          .accountCreationDate(Timestamp.from(Instant.now()))
+          .nominalRate(bankDTO.getNominalRate())
+          .effectiveRate(bankDTO.getEffectiveRate())
+          .extraCommission(bankDTO.getExtraCommission())
+          .build();
+
+      bankRepository.save(bank);
+
+      Map<String, Object> extraClaims = new HashMap<String, Object>();
+      extraClaims.put("realName", bank.getRealName());
+      extraClaims.put("image", bank.getImageUrl());
+      extraClaims.put("role", AuthRoleEnum.BANK.name());
+
+      return new ResponseDTO(null, jwtUtils.genToken(bank, extraClaims, rememberMe));
+    } catch (BadCredentialsException e) {
+      throw e;
+    } catch (IllegalArgumentException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error inesperado: " + e.getMessage());
     }
-
-    String publicUuid = UUID.randomUUID().toString();
-    bankDTO.setPublicUuid(publicUuid);
-
-    if (image != null) {
-      bankDTO.setImageUrl(cloudStorageService.uploadFile(image, publicUuid));
-    }
-
-    BankEntity bank = BankEntity.builder()
-        .realName(bankDTO.getRealName())
-        .ruc(bankDTO.getRuc())
-        .username(bankDTO.getUsername())
-        .password(passwordEncoder.encode(bankDTO.getPassword()))
-        .publicUuid(publicUuid)
-        .imageUrl(bankDTO.getImageUrl() != null ? bankDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/bank.png")
-        .mainCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
-        .previewDataCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
-        .balance(new BigDecimal(1000000))
-        .role(AuthRoleEnum.BANK)
-        .creationDate(bankDTO.getCreationDate() != null ? bankDTO.getCreationDate() : LocalDate.now())
-        .accountCreationDate(Timestamp.from(Instant.now()))
-        .nominalRate(bankDTO.getNominalRate())
-        .effectiveRate(bankDTO.getEffectiveRate())
-        .extraCommission(bankDTO.getExtraCommission())
-        .build();
-
-    bankRepository.save(bank);
-
-    Map<String, Object> extraClaims = new HashMap<String, Object>();
-    extraClaims.put("realName", bank.getRealName());
-    extraClaims.put("image", bank.getImageUrl());
-    extraClaims.put("role", AuthRoleEnum.BANK.name());
-
-    return new ResponseDTO(null, jwtUtils.genToken(bank, extraClaims, rememberMe));
   }
 
   @Override

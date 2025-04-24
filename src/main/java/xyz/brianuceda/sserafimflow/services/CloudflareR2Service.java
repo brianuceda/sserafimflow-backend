@@ -13,9 +13,6 @@ import software.amazon.awssdk.core.sync.ResponseTransformer;
 
 import xyz.brianuceda.sserafimflow.implementations.CloudStorageImpl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,11 +53,14 @@ public class CloudflareR2Service implements CloudStorageImpl {
             // Definir un nombre de archivo único basado en el publicUuid
             String fileName = publicUuid;
             
-            // Convertir MultipartFile a File usando el UUID para el archivo temporal
-            File fileObj = convertMultiPartFileToFile(file, publicUuid);
+            // Obtener los bytes del archivo directamente
+            byte[] fileBytes = file.getBytes();
             
             // Determinar el tipo de contenido
             String contentType = file.getContentType();
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
             
             // Configurar metadatos 
             Map<String, String> metadata = new HashMap<>();
@@ -75,10 +75,8 @@ public class CloudflareR2Service implements CloudStorageImpl {
                     .cacheControl("public, max-age=31536000") // Un año de caché
                     .build();
             
-            r2Client.putObject(putObjectRequest, RequestBody.fromFile(fileObj));
-            
-            // Eliminar el archivo temporal
-            fileObj.delete();
+            // Subir directamente los bytes del archivo sin crear un archivo temporal
+            r2Client.putObject(putObjectRequest, RequestBody.fromBytes(fileBytes));
             
             // Generar URL pública usando la variable de entorno cdnUrl
             String fileUrl = cdnUrl + "/" + fileName;
@@ -138,16 +136,5 @@ public class CloudflareR2Service implements CloudStorageImpl {
             log.severe("Error al obtener archivo de R2: " + e.getMessage());
             throw new IllegalArgumentException("Error al obtener la imagen: " + e.getMessage());
         }
-    }
-    
-    // Método auxiliar para convertir MultipartFile a File
-    private File convertMultiPartFileToFile(MultipartFile file, String publicUuid) {
-        File convertedFile = new File(publicUuid + "-tmp");
-        try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
-            fos.write(file.getBytes());
-        } catch (IOException e) {
-            log.warning("Error convirtiendo MultipartFile: " + e);
-        }
-        return convertedFile;
     }
 }

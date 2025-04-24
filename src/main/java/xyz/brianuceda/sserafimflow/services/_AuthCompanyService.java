@@ -52,40 +52,54 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
   @Override
   @Transactional
   public ResponseDTO register(CompanyDTO companyDTO, MultipartFile image, Boolean rememberMe) {
-    if (companyRepository.findByUsername(companyDTO.getUsername()).isPresent()) {
-      throw new BadCredentialsException("La empresa ya existe");
+    try {
+      if (companyRepository.findByUsername(companyDTO.getUsername()).isPresent()) {
+        throw new BadCredentialsException("La empresa ya existe");
+      }
+
+      String publicUuid = UUID.randomUUID().toString();
+      companyDTO.setPublicUuid(publicUuid);
+
+      String imageUrl = null;
+      if (image != null) {
+        try {
+          imageUrl = cloudStorageService.uploadFile(image, publicUuid);
+          companyDTO.setImageUrl(imageUrl);
+        } catch (Exception e) {
+          throw new IllegalArgumentException("Error al subir la imagen: " + e.getMessage());
+        }
+      }
+
+      CompanyEntity company = CompanyEntity.builder()
+          .realName(companyDTO.getRealName())
+          .ruc(companyDTO.getRuc())
+          .username(companyDTO.getUsername())
+          .password(passwordEncoder.encode(companyDTO.getPassword()))
+          .publicUuid(publicUuid)
+          .imageUrl(imageUrl != null ? imageUrl : "https://i.ibb.co/BrwL76K/company.png")
+          .mainCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
+          .previewDataCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
+          .balance(BigDecimal.valueOf(0.0))
+          .role(AuthRoleEnum.COMPANY)
+          .creationDate(companyDTO.getCreationDate() != null ? (LocalDate) companyDTO.getCreationDate() : LocalDate.now())
+          .accountCreationDate(Timestamp.from(Instant.now()))
+          .build();
+
+      companyRepository.save(company);
+
+      Map<String, Object> extraClaims = new HashMap<String, Object>();
+      extraClaims.put("realName", company.getRealName());
+      extraClaims.put("image", company.getImageUrl());
+      extraClaims.put("role", AuthRoleEnum.COMPANY.name());
+
+      return new ResponseDTO(null, jwtUtils.genToken(company, extraClaims, rememberMe));
+    } catch (BadCredentialsException e) {
+      throw e;
+    } catch (IllegalArgumentException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error inesperado: " + e.getMessage());
     }
-
-    String publicUuid = UUID.randomUUID().toString();
-    companyDTO.setPublicUuid(publicUuid);
-
-    if (image != null) {
-      companyDTO.setImageUrl(cloudStorageService.uploadFile(image, publicUuid));
-    }
-
-    CompanyEntity company = CompanyEntity.builder()
-        .realName(companyDTO.getRealName())
-        .ruc(companyDTO.getRuc())
-        .username(companyDTO.getUsername())
-        .password(passwordEncoder.encode(companyDTO.getPassword()))
-        .publicUuid(publicUuid)
-        .imageUrl(companyDTO.getImageUrl() != null ? companyDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/company.png")
-        .mainCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
-        .previewDataCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
-        .balance(BigDecimal.valueOf(0.0))
-        .role(AuthRoleEnum.COMPANY)
-        .creationDate(companyDTO.getCreationDate() != null ? (LocalDate) companyDTO.getCreationDate() : LocalDate.now())
-        .accountCreationDate(Timestamp.from(Instant.now()))
-        .build();
-
-    companyRepository.save(company);
-
-    Map<String, Object> extraClaims = new HashMap<String, Object>();
-    extraClaims.put("realName", company.getRealName());
-    extraClaims.put("image", company.getImageUrl());
-    extraClaims.put("role", AuthRoleEnum.COMPANY.name());
-
-    return new ResponseDTO(null, jwtUtils.genToken(company, extraClaims, rememberMe));
   }
 
   @Override
