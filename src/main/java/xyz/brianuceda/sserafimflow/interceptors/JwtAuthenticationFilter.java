@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,30 +34,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @SuppressWarnings("null")
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
-
-    String token = jwtUtils.getTokenFromRequest(request);
-
-    if (jwtUtils.isTokenBlacklisted(token)) {
-      throw new BlacklistedTokenException("Token inválido");
-    }
-
-    if (token != null && !token.isEmpty()) {
-      String username = jwtUtils.getUsernameFromToken(token);
-      AuthRoleEnum role = jwtUtils.getRoleFromToken(token);
-
-      System.out.println("Username: " + username + " Role: " + role);
-
-      if (username != null) {
-          UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
-        if (userDetails != null && jwtUtils.isValidToken(token, userDetails)) {
-          var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-          SecurityContextHolder.getContext().setAuthentication(authentication);
+    throws ServletException, IOException {
+    
+    try {
+        String token = jwtUtils.getTokenFromRequest(request);
+        
+        if (token != null && !token.isEmpty()) {
+            if (jwtUtils.isTokenBlacklisted(token)) {
+                throw new BlacklistedTokenException("Token inválido");
+            }
+            
+            String username = jwtUtils.getUsernameFromToken(token);
+            
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                
+                if (jwtUtils.isValidToken(token, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
         }
-      }
+    } catch (Exception e) {
+        logger.error("Cannot set user authentication: {}", e);
     }
-
+    
     filterChain.doFilter(request, response);
   }
 }

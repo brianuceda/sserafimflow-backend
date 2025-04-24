@@ -10,7 +10,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final String[] ALLOWED_ORIGINS = {
-		"https://noriainterior.vercel.app",
         "https://sserafimflow.vercel.app",
         "http://localhost:4200"
     };
