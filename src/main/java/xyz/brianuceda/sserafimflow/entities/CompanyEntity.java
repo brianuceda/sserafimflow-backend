@@ -39,6 +39,9 @@ public class CompanyEntity implements UserDetails {
   @Column(nullable = false, length = 255)
   private String password;
 
+  @Column(unique = true, nullable = false, length = 36)
+  private String publicUuid;
+
   @Column(nullable = true)
   private String imageUrl;
 

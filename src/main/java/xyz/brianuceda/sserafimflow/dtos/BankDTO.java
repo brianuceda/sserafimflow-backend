@@ -24,6 +24,7 @@ public class BankDTO {
   private String ruc;
   private String username;
   private String password;
+  private String publicUuid;
   private String imageUrl;
   private CurrencyEnum mainCurrency;
   private CurrencyEnum previewDataCurrency;
@@ -41,6 +42,7 @@ public class BankDTO {
     this.realName = bank.getRealName();
     this.ruc = bank.getRuc();
     this.username = bank.getUsername();
+    this.publicUuid = bank.getPublicUuid();
     this.imageUrl = bank.getImageUrl();
     this.mainCurrency = bank.getMainCurrency();
     this.previewDataCurrency = bank.getPreviewDataCurrency();
@@ -57,5 +59,15 @@ public class BankDTO {
     this.id = id;
     this.realName = realName;
     this.imageUrl = imageUrl;
+  }
+
+  // Para mostrar en la compra
+  public BankDTO(String realName, String ruc, String imageUrl, BigDecimal nominalRate, BigDecimal effectiveRate, BigDecimal extraCommission) {
+    this.realName = realName;
+    this.ruc = ruc;
+    this.imageUrl = imageUrl;
+    this.nominalRate = nominalRate;
+    this.effectiveRate = effectiveRate;
+    this.extraCommission = extraCommission;
   }
 }

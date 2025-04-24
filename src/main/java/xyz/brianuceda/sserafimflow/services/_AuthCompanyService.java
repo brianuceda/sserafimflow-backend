@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -55,8 +56,11 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
       throw new BadCredentialsException("La empresa ya existe");
     }
 
+    String publicUuid = UUID.randomUUID().toString();
+    companyDTO.setPublicUuid(publicUuid);
+
     if (image != null) {
-      companyDTO.setImageUrl(cloudStorageService.uploadFile(image, companyDTO.getUsername()));
+      companyDTO.setImageUrl(cloudStorageService.uploadFile(image, publicUuid));
     }
 
     CompanyEntity company = CompanyEntity.builder()
@@ -64,6 +68,7 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
         .ruc(companyDTO.getRuc())
         .username(companyDTO.getUsername())
         .password(passwordEncoder.encode(companyDTO.getPassword()))
+        .publicUuid(publicUuid)
         .imageUrl(companyDTO.getImageUrl() != null ? companyDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/company.png")
         .mainCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)
         .previewDataCurrency(companyDTO.getMainCurrency() != null ? companyDTO.getMainCurrency() : CurrencyEnum.PEN)

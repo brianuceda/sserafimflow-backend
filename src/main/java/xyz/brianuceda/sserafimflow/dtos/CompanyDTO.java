@@ -11,17 +11,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
 public class CompanyDTO {
   private Long id;
   private String realName;
   private String ruc;
   private String username;
   private String password;
+  private String publicUuid;
   private String imageUrl;
   private CurrencyEnum mainCurrency;
   private CurrencyEnum previewDataCurrency;
@@ -36,6 +39,7 @@ public class CompanyDTO {
     this.realName = company.getRealName();
     this.ruc = company.getRuc();
     this.username = company.getUsername();
+    this.publicUuid = company.getPublicUuid();
     this.imageUrl = company.getImageUrl();
     this.mainCurrency = company.getMainCurrency();
     this.previewDataCurrency = company.getPreviewDataCurrency();

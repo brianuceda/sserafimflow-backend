@@ -51,10 +51,10 @@ public class CloudflareR2Service implements CloudStorageImpl {
     }
 
     @Override
-    public String uploadFile(MultipartFile file, String username) {
+    public String uploadFile(MultipartFile file, String publicUuid) {
         try {
-            // Definir un nombre de archivo único basado en el username
-            String fileName = username;
+            // Definir un nombre de archivo único basado en el publicUuid
+            String fileName = publicUuid;
             
             // Convertir MultipartFile a File
             File fileObj = convertMultiPartFileToFile(file);
@@ -64,7 +64,7 @@ public class CloudflareR2Service implements CloudStorageImpl {
             
             // Configurar metadatos 
             Map<String, String> metadata = new HashMap<>();
-            metadata.put("username", username);
+            metadata.put("publicUuid", publicUuid);
             
             // Configurar el objeto para R2
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -92,12 +92,12 @@ public class CloudflareR2Service implements CloudStorageImpl {
     }
 
     @Override
-    public String deleteFile(String username) {
+    public String deleteFile(String publicUuid) {
         try {
             // Verificar si el archivo existe
             HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(username)
+                    .key(publicUuid)
                     .build();
             
             try {
@@ -109,7 +109,7 @@ public class CloudflareR2Service implements CloudStorageImpl {
             // Eliminar el archivo
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(username)
+                    .key(publicUuid)
                     .build();
             
             r2Client.deleteObject(deleteObjectRequest);
@@ -122,17 +122,17 @@ public class CloudflareR2Service implements CloudStorageImpl {
     }
     
     // Método para obtener un archivo
-    public byte[] getFile(String username) {
+    public byte[] getFile(String publicUuid) {
         try {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(username)
+                    .key(publicUuid)
                     .build();
             
             // Descargar el archivo como un array de bytes
             return r2Client.getObject(getObjectRequest, ResponseTransformer.toBytes()).asByteArray();
         } catch (NoSuchKeyException e) {
-            log.warning("Archivo no encontrado en R2: " + username);
+            log.warning("Archivo no encontrado en R2: " + publicUuid);
             return null;
         } catch (Exception e) {
             log.severe("Error al obtener archivo de R2: " + e.getMessage());

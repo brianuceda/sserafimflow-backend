@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -55,8 +56,11 @@ public class _AuthBankService implements _AuthBankImpl {
       throw new BadCredentialsException("El banco ya existe");
     }
 
+    String publicUuid = UUID.randomUUID().toString();
+    bankDTO.setPublicUuid(publicUuid);
+
     if (image != null) {
-      bankDTO.setImageUrl(cloudStorageService.uploadFile(image, bankDTO.getUsername()));
+      bankDTO.setImageUrl(cloudStorageService.uploadFile(image, publicUuid));
     }
 
     BankEntity bank = BankEntity.builder()
@@ -64,6 +68,7 @@ public class _AuthBankService implements _AuthBankImpl {
         .ruc(bankDTO.getRuc())
         .username(bankDTO.getUsername())
         .password(passwordEncoder.encode(bankDTO.getPassword()))
+        .publicUuid(publicUuid)
         .imageUrl(bankDTO.getImageUrl() != null ? bankDTO.getImageUrl() : "https://i.ibb.co/BrwL76K/bank.png")
         .mainCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
         .previewDataCurrency(bankDTO.getMainCurrency() != null ? bankDTO.getMainCurrency() : CurrencyEnum.PEN)
