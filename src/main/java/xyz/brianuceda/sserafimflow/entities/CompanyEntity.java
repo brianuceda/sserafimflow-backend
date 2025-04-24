@@ -67,10 +67,10 @@ public class CompanyEntity implements UserDetails {
   @Column(nullable = false)
   private Timestamp accountCreationDate;
 
-  @OneToMany(mappedBy = "company")
+  @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
   private List<DocumentEntity> documents;
 
-  @OneToMany(mappedBy = "company")
+  @OneToMany(mappedBy = "company", fetch = FetchType.EAGER)
   private List<PortfolioEntity> portfolios;
 
   @Override
