@@ -56,8 +56,8 @@ public class CloudflareR2Service implements CloudStorageImpl {
             // Definir un nombre de archivo único basado en el publicUuid
             String fileName = publicUuid;
             
-            // Convertir MultipartFile a File
-            File fileObj = convertMultiPartFileToFile(file);
+            // Convertir MultipartFile a File usando el UUID para el archivo temporal
+            File fileObj = convertMultiPartFileToFile(file, publicUuid);
             
             // Determinar el tipo de contenido
             String contentType = file.getContentType();
@@ -141,8 +141,8 @@ public class CloudflareR2Service implements CloudStorageImpl {
     }
     
     // Método auxiliar para convertir MultipartFile a File
-    private File convertMultiPartFileToFile(MultipartFile file) {
-        File convertedFile = new File(file.getOriginalFilename());
+    private File convertMultiPartFileToFile(MultipartFile file, String publicUuid) {
+        File convertedFile = new File(publicUuid + "-tmp");
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         } catch (IOException e) {
