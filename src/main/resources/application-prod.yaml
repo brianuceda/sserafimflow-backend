@@ -20,19 +20,18 @@ spring:
       max-file-size: 2MB
       max-request-size: 5MB
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${SSERAFIMFLOW_AWS_ACCESS_KEY}
-      secret-key: ${SSERAFIMFLOW_AWS_SECRET_KEY}
-    region:
-      static: ${SSERAFIMFLOW_AWS_REGION}
-    stack:
-      auto: false
-
-application:
-  bucket:
-    name: ${SSERAFIMFLOW_S3_BUCKET_NAME}
+cloudflare:
+  r2:
+    account:
+      id: ${SSERAFIMFLOW_R2_ACCOUNT_ID}
+    access:
+      key: ${SSERAFIMFLOW_R2_ACCESS_KEY}
+    secret:
+      key: ${SSERAFIMFLOW_R2_SECRET_KEY}
+    bucket:
+      name: ${SSERAFIMFLOW_R2_BUCKET_NAME}
+    cdn:
+      url: ${SSERAFIMFLOW_R2_CDN_URL}
 
 SSERAFIMFLOW_JWT_SECRET_KEY: ${SSERAFIMFLOW_JWT_SECRET_KEY}
 SSERAFIMFLOW_JWT_EXP_TIME: ${SSERAFIMFLOW_JWT_EXP_TIME}

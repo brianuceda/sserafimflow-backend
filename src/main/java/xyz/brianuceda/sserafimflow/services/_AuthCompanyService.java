@@ -19,7 +19,7 @@ import xyz.brianuceda.sserafimflow.dtos.ResponseDTO;
 import xyz.brianuceda.sserafimflow.entities.CompanyEntity;
 import xyz.brianuceda.sserafimflow.enums.AuthRoleEnum;
 import xyz.brianuceda.sserafimflow.enums.CurrencyEnum;
-import xyz.brianuceda.sserafimflow.implementations.AwsS3Impl;
+import xyz.brianuceda.sserafimflow.implementations.CloudStorageImpl;
 import xyz.brianuceda.sserafimflow.implementations._AuthCompanyImpl;
 import xyz.brianuceda.sserafimflow.respositories.CompanyRepository;
 import xyz.brianuceda.sserafimflow.utils.JwtUtils;
@@ -32,20 +32,20 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtils jwtUtils;
   private final CompanyRepository companyRepository;
-  private final AwsS3Impl _awsS3Impl;
+  private final CloudStorageImpl cloudStorageService;
 
   public _AuthCompanyService(
       AuthenticationManager authenticationManager,
       PasswordEncoder passwordEncoder,
       JwtUtils jwtUtils,
       CompanyRepository companyRepository,
-      AwsS3Impl _awsS3Impl) {
+      CloudStorageImpl cloudStorageService) {
     
     this.authenticationManager = authenticationManager;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtils = jwtUtils;
     this.companyRepository = companyRepository;
-    this._awsS3Impl = _awsS3Impl;
+    this.cloudStorageService = cloudStorageService;
   }
 
   @Override
@@ -56,7 +56,7 @@ public class _AuthCompanyService implements _AuthCompanyImpl {
     }
 
     if (image != null) {
-      companyDTO.setImageUrl(_awsS3Impl.uploadFile(image, companyDTO.getUsername()));
+      companyDTO.setImageUrl(cloudStorageService.uploadFile(image, companyDTO.getUsername()));
     }
 
     CompanyEntity company = CompanyEntity.builder()

@@ -19,7 +19,7 @@ import xyz.brianuceda.sserafimflow.dtos.ResponseDTO;
 import xyz.brianuceda.sserafimflow.entities.BankEntity;
 import xyz.brianuceda.sserafimflow.enums.AuthRoleEnum;
 import xyz.brianuceda.sserafimflow.enums.CurrencyEnum;
-import xyz.brianuceda.sserafimflow.implementations.AwsS3Impl;
+import xyz.brianuceda.sserafimflow.implementations.CloudStorageImpl;
 import xyz.brianuceda.sserafimflow.implementations._AuthBankImpl;
 import xyz.brianuceda.sserafimflow.respositories.BankRepository;
 import xyz.brianuceda.sserafimflow.utils.JwtUtils;
@@ -32,20 +32,20 @@ public class _AuthBankService implements _AuthBankImpl {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtils jwtUtils;
   private final BankRepository bankRepository;
-  private final AwsS3Impl _awsS3Impl;
+  private final CloudStorageImpl cloudStorageService;
 
   public _AuthBankService(
       AuthenticationManager authenticationManager,
       PasswordEncoder passwordEncoder,
       JwtUtils jwtUtils,
       BankRepository bankRepository,
-      AwsS3Impl _awsS3Impl) {
+      CloudStorageImpl cloudStorageService) {
 
     this.authenticationManager = authenticationManager;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtils = jwtUtils;
     this.bankRepository = bankRepository;
-    this._awsS3Impl = _awsS3Impl;
+    this.cloudStorageService = cloudStorageService;
   }
 
   @Override
@@ -56,7 +56,7 @@ public class _AuthBankService implements _AuthBankImpl {
     }
 
     if (image != null) {
-      bankDTO.setImageUrl(_awsS3Impl.uploadFile(image, bankDTO.getUsername()));
+      bankDTO.setImageUrl(cloudStorageService.uploadFile(image, bankDTO.getUsername()));
     }
 
     BankEntity bank = BankEntity.builder()
